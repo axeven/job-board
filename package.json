@@ -7,13 +7,16 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "type-check": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
     "db:reset": "npx supabase db reset",
     "db:seed": "npm run seed",
     "generate-types": "npx supabase gen types typescript --project-id ztukkfxesizwewadgvsq > types/supabase.ts",
-    "generate-types-local": "npx supabase gen types typescript --local > types/supabase.ts"
+    "generate-types-local": "npx supabase gen types typescript --local > types/supabase.ts",
+    "test-db": "tsx src/lib/test-setup.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.56.0",
     "next": "15.5.2",
     "react": "19.1.0",
