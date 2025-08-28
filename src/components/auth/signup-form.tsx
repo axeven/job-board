@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
 
-import { authClient } from '@/lib/auth/utils'
+import { authClient } from '@/lib/auth/client'
 import { signupSchema, SignupFormData } from '@/lib/auth/validation'
 import { FormField } from '@/components/ui/form-field'
 import { Button } from '@/components/ui/button'

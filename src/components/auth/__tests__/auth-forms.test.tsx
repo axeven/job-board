@@ -34,7 +34,7 @@ const mockSignIn = jest.fn()
 const mockSignUp = jest.fn()
 const mockResetPassword = jest.fn()
 
-jest.mock('@/lib/auth/utils', () => ({
+jest.mock('@/lib/auth/client', () => ({
   authClient: {
     signIn: mockSignIn,
     signUp: mockSignUp,

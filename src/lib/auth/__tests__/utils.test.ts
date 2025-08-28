@@ -1,4 +1,4 @@
-import { authServer } from '../utils'
+import { authServer } from '../server'
 
 // Mock only server-side utilities for now
 jest.mock('@/lib/supabase/server', () => ({

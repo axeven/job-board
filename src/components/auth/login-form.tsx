@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 import { useAuth } from '@/lib/auth/context'
-import { authClient } from '@/lib/auth/utils'
+import { authClient } from '@/lib/auth/client'
 import { loginSchema, LoginFormData } from '@/lib/auth/validation'
 import { FormField } from '@/components/ui/form-field'
 import { Button } from '@/components/ui/button'
