@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   description: 'Set a new password for your Job Board account',
 }
 
+// Force dynamic rendering since this page uses server-side auth
+export const dynamic = 'force-dynamic'
+
 interface ResetPasswordPageProps {
   searchParams: { token?: string; error?: string }
 }

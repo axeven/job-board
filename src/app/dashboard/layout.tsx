@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   description: 'Manage your job postings and account settings',
 }
 
+// Force dynamic rendering since this layout uses server-side auth
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardLayout({
   children,
 }: {

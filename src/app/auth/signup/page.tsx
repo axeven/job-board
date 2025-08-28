@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   description: 'Create a new Job Board account to start posting and managing jobs',
 }
 
+// Force dynamic rendering since this page uses server-side auth
+export const dynamic = 'force-dynamic'
+
 export default async function SignupPage() {
   // Redirect if already authenticated
   const user = await authServer.getUser()

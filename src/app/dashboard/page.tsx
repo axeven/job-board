@@ -1,17 +1,26 @@
 import { authServer } from '@/lib/auth/server'
 import { DashboardStats } from '@/components/dashboard/stats'
 import { RecentJobs } from '@/components/dashboard/recent-jobs'
+import { Tables } from '@/types/supabase'
+
+// Job type from database schema
+type Job = Tables<'jobs'>
+
+// Force dynamic rendering since this page uses server-side auth
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   await authServer.requireAuth()
   
   // TODO: In Phase 3, we'll fetch actual user jobs from database
   // For now, use mock data to show the dashboard structure
-  const mockJobs: never[] = []
+  const mockJobs: Job[] = []
   
   const stats = {
     totalJobs: mockJobs.length,
-    activeJobs: mockJobs.filter(job => !job.is_archived).length,
+    // Since there's no is_archived field in the database schema,
+    // we'll consider all jobs as active for now
+    activeJobs: mockJobs.length,
   }
 
   return (

@@ -1,12 +1,9 @@
 import Link from 'next/link'
+import { Tables } from '@/types/supabase'
 
-interface Job {
-  id: string
-  title: string
-  company: string
-  location: string
-  created_at: string
-  is_archived?: boolean
+// Use the database schema as the source of truth
+interface Job extends Tables<'jobs'> {
+  is_archived?: boolean  // Optional field for future use
 }
 
 interface RecentJobsProps {
@@ -59,7 +56,7 @@ export function RecentJobs({ jobs }: RecentJobsProps) {
                 </div>
                 <p className="text-sm text-gray-500">{job.company} • {job.location}</p>
                 <p className="text-xs text-gray-400">
-                  Posted {new Date(job.created_at).toLocaleDateString()}
+                  Posted {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Unknown date'}
                 </p>
               </div>
               <div className="flex items-center space-x-2">

@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   description: 'Reset your Job Board account password',
 }
 
+// Force dynamic rendering since this page uses server-side auth
+export const dynamic = 'force-dynamic'
+
 export default async function ForgotPasswordPage() {
   // Redirect if already authenticated
   const user = await authServer.getUser()
