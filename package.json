@@ -6,7 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "tsx scripts/seed.ts",
+    "db:reset": "npx supabase db reset",
+    "db:seed": "npm run seed",
+    "generate-types": "npx supabase gen types typescript --project-id ztukkfxesizwewadgvsq > types/supabase.ts",
+    "generate-types-local": "npx supabase gen types typescript --local > types/supabase.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.56.0",
@@ -20,9 +25,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.1",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
+    "supabase": "^2.39.2",
     "tailwindcss": "^4",
+    "tsx": "^4.0.0",
     "typescript": "^5"
   }
 }
