@@ -45,7 +45,7 @@ describe('Auth Utilities', () => {
       expect(user).toBeNull()
     })
 
-    it('should require auth and throw if not authenticated', async () => {
+    it('should require auth and redirect if not authenticated', async () => {
       const mockClient = await require('@/lib/supabase/server').createClient()
       
       mockClient.auth.getUser.mockResolvedValue({
@@ -53,7 +53,7 @@ describe('Auth Utilities', () => {
         error: null
       })
 
-      await expect(authServer.requireAuth()).rejects.toThrow('Authentication required')
+      await expect(authServer.requireAuth()).rejects.toThrow('NEXT_REDIRECT')
     })
   })
 })
