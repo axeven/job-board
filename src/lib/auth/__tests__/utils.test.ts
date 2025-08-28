@@ -17,7 +17,8 @@ const mockClient = {
 }
 
 // Set up the mock to return our typed mock client
-mockCreateClient.mockResolvedValue(mockClient as any)
+// Using 'unknown' first to allow the type conversion as suggested by TypeScript
+mockCreateClient.mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof mockCreateClient>>)
 
 describe('Auth Utilities', () => {
   // Skip client-side tests for now due to complex window mocking

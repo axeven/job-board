@@ -2,6 +2,31 @@ import { NextRequest, NextResponse } from 'next/server'
 import { middleware } from '../middleware'
 import { createServerClient } from '@supabase/ssr'
 
+// Types for mocked objects
+type MockUrl = {
+  pathname: string
+  searchParams: {
+    set: jest.MockedFunction<(key: string, value: string) => void>
+  }
+}
+
+type MockNextUrl = {
+  pathname: string
+  clone: jest.MockedFunction<() => MockUrl>
+}
+
+type MockCookies = {
+  getAll: jest.MockedFunction<() => Array<{ name: string; value: string; options: object }>>
+  set: jest.MockedFunction<(name: string, value: string) => void>
+}
+
+type SupabaseCookieConfig = {
+  cookies: {
+    getAll: () => Array<{ name: string; value: string; options: object }>
+    setAll: (cookies: Array<{ name: string; value: string; options: object }>) => void
+  }
+}
+
 // Mock @supabase/ssr
 jest.mock('@supabase/ssr', () => ({
   createServerClient: jest.fn()
@@ -38,11 +63,11 @@ describe('Middleware', () => {
       nextUrl: {
         pathname: '/',
         clone: jest.fn()
-      } as any,
+      } as MockNextUrl,
       cookies: {
         getAll: jest.fn(() => []),
         set: jest.fn()
-      } as any
+      } as MockCookies
     }
   })
 
@@ -80,10 +105,10 @@ describe('Middleware', () => {
       set: jest.fn()
     }
     
-    const mockClonedUrl = {
+    const mockClonedUrl: MockUrl = {
       pathname: '/auth/login',
       searchParams: mockSearchParams
-    } as any
+    }
     
     mockCreateServerClient.mockReturnValue(mockSupabase)
     mockRequest.nextUrl!.pathname = '/dashboard'
@@ -133,10 +158,10 @@ describe('Middleware', () => {
       set: jest.fn()
     }
     
-    const mockClonedUrl = {
+    const mockClonedUrl: MockUrl = {
       pathname: '/auth/login',
       searchParams: mockSearchParams
-    } as any
+    }
     
     mockCreateServerClient.mockReturnValue(mockSupabase)
     mockRequest.nextUrl!.pathname = '/post-job'
@@ -148,8 +173,8 @@ describe('Middleware', () => {
   })
 
   it('should handle cookie operations correctly', async () => {
-    let cookieConfig: any
-    mockCreateServerClient.mockImplementation((url: string, key: string, config: any) => {
+    let cookieConfig: SupabaseCookieConfig
+    mockCreateServerClient.mockImplementation((url: string, key: string, config: SupabaseCookieConfig) => {
       cookieConfig = config
       return {
         auth: {

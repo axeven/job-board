@@ -2,6 +2,14 @@ import { createClient } from '../supabase/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+// Type for Supabase cookie configuration
+type SupabaseCookieConfig = {
+  cookies: {
+    getAll: () => Array<{ name: string; value: string; options: object }>
+    setAll: (cookies: Array<{ name: string; value: string; options: object }>) => void
+  }
+}
+
 // Mock Next.js cookies function
 jest.mock('next/headers', () => ({
   cookies: jest.fn(() => Promise.resolve({
@@ -60,9 +68,9 @@ describe('Supabase Server Client', () => {
     })
 
     it('should handle cookie operations correctly', async () => {
-      let cookieConfig: any
+      let cookieConfig: SupabaseCookieConfig
 
-      mockCreateServerClient.mockImplementation((url: string, key: string, config: any) => {
+      mockCreateServerClient.mockImplementation((url: string, key: string, config: SupabaseCookieConfig) => {
         cookieConfig = config
         return {
           from: jest.fn(),
@@ -99,9 +107,9 @@ describe('Supabase Server Client', () => {
       }
       mockCookies.mockResolvedValue(mockCookieStore)
 
-      let cookieConfig: any
+      let cookieConfig: SupabaseCookieConfig
 
-      mockCreateServerClient.mockImplementation((url: string, key: string, config: any) => {
+      mockCreateServerClient.mockImplementation((url: string, key: string, config: SupabaseCookieConfig) => {
         cookieConfig = config
         return {
           from: jest.fn(),

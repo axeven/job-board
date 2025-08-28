@@ -2,6 +2,13 @@ import { GET } from '@/app/auth/callback/route'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+// Type for the mocked Supabase client
+type MockSupabaseClient = {
+  auth: {
+    exchangeCodeForSession: jest.MockedFunction<(code: string) => Promise<{ error: { message: string } | null }>>
+  }
+}
+
 // Mock the Supabase server client
 jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn()
@@ -18,19 +25,20 @@ jest.mock('next/server', () => ({
 const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>
 const mockNextResponse = NextResponse as jest.Mocked<typeof NextResponse>
 
-// Create a mock client instance type
-const mockClient = {
+// Create a mock client instance with proper typing
+const mockClient: MockSupabaseClient = {
   auth: {
     exchangeCodeForSession: jest.fn()
   }
 }
 
 // Set up the mock to return our typed mock client
-mockCreateClient.mockResolvedValue(mockClient as any)
+// Using 'unknown' first to allow the type conversion as suggested by TypeScript
+mockCreateClient.mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof mockCreateClient>>)
 
 describe('Auth Callback Route', () => {
   function createMockRequest(url: string): NextRequest {
-    return { url } as any
+    return { url } as NextRequest
   }
 
   beforeEach(() => {

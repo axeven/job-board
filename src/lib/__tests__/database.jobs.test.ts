@@ -12,9 +12,29 @@ const mockJob = {
   updated_at: '2024-01-01T00:00:00.000Z'
 }
 
+// Types for the mock objects
+type MockQueryResult = {
+  data: typeof mockJob[] | typeof mockJob | null
+  error: null | { message: string }
+}
+
+type MockQueryChain = {
+  select: jest.MockedFunction<() => MockQueryChain>
+  order: jest.MockedFunction<() => MockQueryChain>
+  eq: jest.MockedFunction<() => MockQueryChain>
+  ilike: jest.MockedFunction<() => MockQueryChain>
+  or: jest.MockedFunction<() => MockQueryChain>
+  single: jest.MockedFunction<() => Promise<MockQueryResult>>
+  then: jest.MockedFunction<(resolve: (value: MockQueryResult) => void) => void>
+  insert?: jest.MockedFunction<(data: object) => { select: () => { single: () => Promise<MockQueryResult> } }>
+  update?: jest.MockedFunction<(data: object) => { eq: () => { select: () => { single: () => Promise<MockQueryResult> } } }>
+  delete?: jest.MockedFunction<() => { eq: () => Promise<MockQueryResult> }>
+  [Symbol.toStringTag]: string
+}
+
 // Create a proper chainable mock
-const createMockQuery = (mockData: any[] = []): any => {
-  const mockQuery: any = {
+const createMockQuery = (mockData: typeof mockJob[] = []): MockQueryChain => {
+  const mockQuery: MockQueryChain = {
     select: jest.fn(() => mockQuery),
     order: jest.fn(() => mockQuery),
     eq: jest.fn(() => mockQuery),
@@ -22,7 +42,7 @@ const createMockQuery = (mockData: any[] = []): any => {
     or: jest.fn(() => mockQuery),
     single: jest.fn().mockResolvedValue({ data: mockJob, error: null }),
     // Mock the Promise resolution for the final query
-    then: jest.fn((resolve: Function) => resolve({ data: mockData, error: null })),
+    then: jest.fn((resolve: (value: MockQueryResult) => void) => resolve({ data: mockData, error: null })),
     // Make it awaitable
     [Symbol.toStringTag]: 'Promise'
   }
@@ -37,7 +57,7 @@ const createMockQuery = (mockData: any[] = []): any => {
 jest.mock('../supabase/client', () => ({
   supabase: jest.fn(() => ({
     from: jest.fn(() => {
-      const query: any = createMockQuery([])
+      const query = createMockQuery([])
       // Add additional methods for insert/update/delete
       query.insert = jest.fn(() => ({
         select: jest.fn(() => ({
