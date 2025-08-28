@@ -1,5 +1,6 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { middleware } from '../middleware'
+import { createServerClient } from '@supabase/ssr'
 
 // Mock @supabase/ssr
 jest.mock('@supabase/ssr', () => ({
@@ -17,6 +18,9 @@ jest.mock('next/server', () => ({
     redirect: jest.fn()
   }
 }))
+
+const mockCreateServerClient = createServerClient as jest.MockedFunction<typeof createServerClient>
+const mockNextResponse = NextResponse as jest.Mocked<typeof NextResponse>
 
 describe('Middleware', () => {
   let mockRequest: Partial<NextRequest>
@@ -43,8 +47,6 @@ describe('Middleware', () => {
   })
 
   it('should allow access to public routes without authentication', async () => {
-    const { createServerClient } = require('@supabase/ssr')
-    const { NextResponse } = require('next/server')
     
     const mockSupabase = {
       auth: {
@@ -54,18 +56,16 @@ describe('Middleware', () => {
       }
     }
     
-    createServerClient.mockReturnValue(mockSupabase)
+    mockCreateServerClient.mockReturnValue(mockSupabase)
     mockRequest.nextUrl!.pathname = '/public-page'
     
     const result = await middleware(mockRequest as NextRequest)
     
     expect(result).toBeDefined()
-    expect(NextResponse.redirect).not.toHaveBeenCalled()
+    expect(mockNextResponse.redirect).not.toHaveBeenCalled()
   })
 
   it('should redirect unauthenticated users from protected routes', async () => {
-    const { createServerClient } = require('@supabase/ssr')
-    const { NextResponse } = require('next/server')
     
     const mockSupabase = {
       auth: {
@@ -85,19 +85,17 @@ describe('Middleware', () => {
       searchParams: mockSearchParams
     } as any
     
-    createServerClient.mockReturnValue(mockSupabase)
+    mockCreateServerClient.mockReturnValue(mockSupabase)
     mockRequest.nextUrl!.pathname = '/dashboard'
     ;(mockRequest.nextUrl!.clone as jest.Mock).mockReturnValue(mockClonedUrl)
     
     await middleware(mockRequest as NextRequest)
     
-    expect(NextResponse.redirect).toHaveBeenCalledWith(mockClonedUrl)
+    expect(mockNextResponse.redirect).toHaveBeenCalledWith(mockClonedUrl)
     expect(mockSearchParams.set).toHaveBeenCalledWith('redirectedFrom', '/dashboard')
   })
 
   it('should allow authenticated users to access protected routes', async () => {
-    const { createServerClient } = require('@supabase/ssr')
-    const { NextResponse } = require('next/server')
     
     const mockSession = {
       user: { id: '123' },
@@ -112,18 +110,16 @@ describe('Middleware', () => {
       }
     }
     
-    createServerClient.mockReturnValue(mockSupabase)
+    mockCreateServerClient.mockReturnValue(mockSupabase)
     mockRequest.nextUrl!.pathname = '/dashboard'
     
     const result = await middleware(mockRequest as NextRequest)
     
     expect(result).toBeDefined()
-    expect(NextResponse.redirect).not.toHaveBeenCalled()
+    expect(mockNextResponse.redirect).not.toHaveBeenCalled()
   })
 
   it('should handle post-job route as protected', async () => {
-    const { createServerClient } = require('@supabase/ssr')
-    const { NextResponse } = require('next/server')
     
     const mockSupabase = {
       auth: {
@@ -142,20 +138,18 @@ describe('Middleware', () => {
       searchParams: mockSearchParams
     } as any
     
-    createServerClient.mockReturnValue(mockSupabase)
+    mockCreateServerClient.mockReturnValue(mockSupabase)
     mockRequest.nextUrl!.pathname = '/post-job'
     ;(mockRequest.nextUrl!.clone as jest.Mock).mockReturnValue(mockClonedUrl)
     
     await middleware(mockRequest as NextRequest)
     
-    expect(NextResponse.redirect).toHaveBeenCalledWith(mockClonedUrl)
+    expect(mockNextResponse.redirect).toHaveBeenCalledWith(mockClonedUrl)
   })
 
   it('should handle cookie operations correctly', async () => {
-    const { createServerClient } = require('@supabase/ssr')
-    
     let cookieConfig: any
-    createServerClient.mockImplementation((url: string, key: string, config: any) => {
+    mockCreateServerClient.mockImplementation((url: string, key: string, config: any) => {
       cookieConfig = config
       return {
         auth: {
@@ -183,8 +177,6 @@ describe('Middleware', () => {
   })
 
   it('should create server client with correct parameters', async () => {
-    const { createServerClient } = require('@supabase/ssr')
-    
     const mockSupabase = {
       auth: {
         getSession: jest.fn().mockResolvedValue({
@@ -193,11 +185,11 @@ describe('Middleware', () => {
       }
     }
     
-    createServerClient.mockReturnValue(mockSupabase)
+    mockCreateServerClient.mockReturnValue(mockSupabase)
     
     await middleware(mockRequest as NextRequest)
     
-    expect(createServerClient).toHaveBeenCalledWith(
+    expect(mockCreateServerClient).toHaveBeenCalledWith(
       'http://localhost:54321',
       'mock-anon-key',
       expect.objectContaining({

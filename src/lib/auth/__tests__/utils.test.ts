@@ -1,14 +1,23 @@
 import { authServer } from '../server'
+import { createClient } from '@/lib/supabase/server'
 
 // Mock only server-side utilities for now
 jest.mock('@/lib/supabase/server', () => ({
-  createClient: jest.fn().mockResolvedValue({
-    auth: {
-      getUser: jest.fn(),
-      getSession: jest.fn()
-    }
-  })
+  createClient: jest.fn()
 }))
+
+const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>
+
+// Create a mock client instance type
+const mockClient = {
+  auth: {
+    getUser: jest.fn(),
+    getSession: jest.fn()
+  }
+}
+
+// Set up the mock to return our typed mock client
+mockCreateClient.mockResolvedValue(mockClient as any)
 
 describe('Auth Utilities', () => {
   // Skip client-side tests for now due to complex window mocking
@@ -18,7 +27,6 @@ describe('Auth Utilities', () => {
 
   describe('authServer', () => {
     it('should get user from server', async () => {
-      const mockClient = await require('@/lib/supabase/server').createClient()
       const mockUser = { id: '123', email: 'test@example.com' }
       
       mockClient.auth.getUser.mockResolvedValue({
@@ -33,8 +41,6 @@ describe('Auth Utilities', () => {
     })
 
     it('should return null on server auth error', async () => {
-      const mockClient = await require('@/lib/supabase/server').createClient()
-      
       mockClient.auth.getUser.mockResolvedValue({
         data: { user: null },
         error: { message: 'No session' }
@@ -46,8 +52,6 @@ describe('Auth Utilities', () => {
     })
 
     it('should require auth and redirect if not authenticated', async () => {
-      const mockClient = await require('@/lib/supabase/server').createClient()
-      
       mockClient.auth.getUser.mockResolvedValue({
         data: { user: null },
         error: null

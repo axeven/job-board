@@ -1,4 +1,6 @@
 import { createClient } from '../supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 // Mock Next.js cookies function
 jest.mock('next/headers', () => ({
@@ -20,6 +22,9 @@ jest.mock('@supabase/ssr', () => ({
   }))
 }))
 
+const mockCreateServerClient = createServerClient as jest.MockedFunction<typeof createServerClient>
+const mockCookies = cookies as jest.MockedFunction<typeof cookies>
+
 describe('Supabase Server Client', () => {
   beforeEach(() => {
     // Set up environment variables for tests
@@ -40,11 +45,9 @@ describe('Supabase Server Client', () => {
     })
 
     it('should use environment variables and cookies for configuration', async () => {
-      const { createServerClient } = require('@supabase/ssr')
-      
       await createClient()
       
-      expect(createServerClient).toHaveBeenCalledWith(
+      expect(mockCreateServerClient).toHaveBeenCalledWith(
         'http://localhost:54321',
         'mock-anon-key',
         expect.objectContaining({
@@ -57,10 +60,9 @@ describe('Supabase Server Client', () => {
     })
 
     it('should handle cookie operations correctly', async () => {
-      const { createServerClient } = require('@supabase/ssr')
       let cookieConfig: any
 
-      createServerClient.mockImplementation((url: string, key: string, config: any) => {
+      mockCreateServerClient.mockImplementation((url: string, key: string, config: any) => {
         cookieConfig = config
         return {
           from: jest.fn(),
@@ -89,19 +91,17 @@ describe('Supabase Server Client', () => {
     })
 
     it('should handle cookie setting errors gracefully', async () => {
-      const { cookies } = require('next/headers')
       const mockCookieStore = {
         getAll: jest.fn(() => []),
         set: jest.fn(() => {
           throw new Error('Cannot set cookie in Server Component')
         })
       }
-      cookies.mockResolvedValue(mockCookieStore)
+      mockCookies.mockResolvedValue(mockCookieStore)
 
-      const { createServerClient } = require('@supabase/ssr')
       let cookieConfig: any
 
-      createServerClient.mockImplementation((url: string, key: string, config: any) => {
+      mockCreateServerClient.mockImplementation((url: string, key: string, config: any) => {
         cookieConfig = config
         return {
           from: jest.fn(),

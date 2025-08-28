@@ -1,4 +1,5 @@
 import { testSupabaseConnection } from '../test-setup'
+import { createBrowserClient } from '@supabase/ssr'
 
 // Mock console methods
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {})
@@ -13,6 +14,8 @@ jest.mock('dotenv', () => ({
 jest.mock('@supabase/ssr', () => ({
   createBrowserClient: jest.fn()
 }))
+
+const mockCreateBrowserClient = createBrowserClient as jest.MockedFunction<typeof createBrowserClient>
 
 describe('Test Setup Utilities', () => {
   beforeEach(() => {
@@ -41,8 +44,7 @@ describe('Test Setup Utilities', () => {
         }))
       }
 
-      const { createBrowserClient } = require('@supabase/ssr')
-      createBrowserClient.mockReturnValue(mockSupabase)
+      mockCreateBrowserClient.mockReturnValue(mockSupabase)
 
       const result = await testSupabaseConnection()
 
@@ -64,8 +66,7 @@ describe('Test Setup Utilities', () => {
         }))
       }
 
-      const { createBrowserClient } = require('@supabase/ssr')
-      createBrowserClient.mockReturnValue(mockSupabase)
+      mockCreateBrowserClient.mockReturnValue(mockSupabase)
 
       const result = await testSupabaseConnection()
 
@@ -77,8 +78,7 @@ describe('Test Setup Utilities', () => {
     it('should return false when an exception is thrown', async () => {
       const mockError = new Error('Unexpected error')
       
-      const { createBrowserClient } = require('@supabase/ssr')
-      createBrowserClient.mockImplementation(() => {
+      mockCreateBrowserClient.mockImplementation(() => {
         throw mockError
       })
 
@@ -98,8 +98,7 @@ describe('Test Setup Utilities', () => {
         }))
       }
 
-      const { createBrowserClient } = require('@supabase/ssr')
-      createBrowserClient.mockReturnValue(mockSupabase)
+      mockCreateBrowserClient.mockReturnValue(mockSupabase)
 
       const result = await testSupabaseConnection()
 
@@ -117,8 +116,7 @@ describe('Test Setup Utilities', () => {
         }))
       }
 
-      const { createBrowserClient } = require('@supabase/ssr')
-      createBrowserClient.mockReturnValue(mockSupabase)
+      mockCreateBrowserClient.mockReturnValue(mockSupabase)
 
       const result = await testSupabaseConnection()
 

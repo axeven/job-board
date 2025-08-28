@@ -1,13 +1,10 @@
 import { GET } from '@/app/auth/callback/route'
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 // Mock the Supabase server client
 jest.mock('@/lib/supabase/server', () => ({
-  createClient: jest.fn().mockResolvedValue({
-    auth: {
-      exchangeCodeForSession: jest.fn()
-    }
-  })
+  createClient: jest.fn()
 }))
 
 // Mock NextResponse
@@ -17,6 +14,19 @@ jest.mock('next/server', () => ({
   },
   NextRequest: jest.fn()
 }))
+
+const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>
+const mockNextResponse = NextResponse as jest.Mocked<typeof NextResponse>
+
+// Create a mock client instance type
+const mockClient = {
+  auth: {
+    exchangeCodeForSession: jest.fn()
+  }
+}
+
+// Set up the mock to return our typed mock client
+mockCreateClient.mockResolvedValue(mockClient as any)
 
 describe('Auth Callback Route', () => {
   function createMockRequest(url: string): NextRequest {
@@ -28,10 +38,6 @@ describe('Auth Callback Route', () => {
   })
 
   it('should redirect to dashboard on successful code exchange', async () => {
-    const { createClient } = require('@/lib/supabase/server')
-    const { NextResponse } = require('next/server')
-    
-    const mockClient = await createClient()
     mockClient.auth.exchangeCodeForSession.mockResolvedValue({ error: null })
 
     const mockRequest = createMockRequest('http://localhost:3000/auth/callback?code=valid-code')
@@ -39,7 +45,7 @@ describe('Auth Callback Route', () => {
     await GET(mockRequest)
 
     expect(mockClient.auth.exchangeCodeForSession).toHaveBeenCalledWith('valid-code')
-    expect(NextResponse.redirect).toHaveBeenCalledWith(
+    expect(mockNextResponse.redirect).toHaveBeenCalledWith(
       expect.objectContaining({
         href: expect.stringContaining('/dashboard')
       })
@@ -47,17 +53,13 @@ describe('Auth Callback Route', () => {
   })
 
   it('should redirect to custom next URL when provided', async () => {
-    const { createClient } = require('@/lib/supabase/server')
-    const { NextResponse } = require('next/server')
-    
-    const mockClient = await createClient()
     mockClient.auth.exchangeCodeForSession.mockResolvedValue({ error: null })
 
     const mockRequest = createMockRequest('http://localhost:3000/auth/callback?code=valid-code&next=/profile')
 
     await GET(mockRequest)
 
-    expect(NextResponse.redirect).toHaveBeenCalledWith(
+    expect(mockNextResponse.redirect).toHaveBeenCalledWith(
       expect.objectContaining({
         href: expect.stringContaining('/profile')
       })
@@ -65,10 +67,6 @@ describe('Auth Callback Route', () => {
   })
 
   it('should redirect to login with error on failed code exchange', async () => {
-    const { createClient } = require('@/lib/supabase/server')
-    const { NextResponse } = require('next/server')
-    
-    const mockClient = await createClient()
     mockClient.auth.exchangeCodeForSession.mockResolvedValue({
       error: { message: 'Invalid code' }
     })
@@ -77,7 +75,7 @@ describe('Auth Callback Route', () => {
 
     await GET(mockRequest)
 
-    expect(NextResponse.redirect).toHaveBeenCalledWith(
+    expect(mockNextResponse.redirect).toHaveBeenCalledWith(
       expect.objectContaining({
         href: expect.stringContaining('/auth/login')
       })
@@ -85,13 +83,12 @@ describe('Auth Callback Route', () => {
   })
 
   it('should redirect to login when no code is provided', async () => {
-    const { NextResponse } = require('next/server')
 
     const mockRequest = createMockRequest('http://localhost:3000/auth/callback')
 
     await GET(mockRequest)
 
-    expect(NextResponse.redirect).toHaveBeenCalledWith(
+    expect(mockNextResponse.redirect).toHaveBeenCalledWith(
       expect.objectContaining({
         href: expect.stringContaining('/auth/login')
       })
