@@ -127,7 +127,9 @@ export async function updateJobAction(
     // Revalidate relevant pages
     revalidatePath('/jobs')
     revalidatePath('/dashboard')
+    revalidatePath('/dashboard/jobs')
     revalidatePath(`/jobs/${jobId}`)
+    revalidatePath(`/dashboard/jobs/${jobId}/edit`)
     
     return {
       message: 'Job posting updated successfully!'

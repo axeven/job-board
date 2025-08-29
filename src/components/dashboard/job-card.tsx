@@ -129,7 +129,13 @@ export function JobCard({ job }: JobCardProps) {
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            <Link
+              href={`/dashboard/jobs/${job.id}/edit`}
+              className="text-sm text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200"
+            >
+              Edit
+            </Link>
             <Link
               href={`/jobs/${job.id}`}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"

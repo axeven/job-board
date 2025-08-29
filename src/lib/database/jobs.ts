@@ -16,7 +16,7 @@ interface MyJobsFilters {
   search: string
 }
 
-interface JobsPagination {
+export interface JobsPagination {
   page: number
   limit: number
   total: number

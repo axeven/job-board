@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { JobStatus } from '@/lib/database/jobs'
 
@@ -27,12 +27,7 @@ export function JobFilters({ currentFilters }: JobFiltersProps) {
     return () => clearTimeout(timer)
   }, [search])
 
-  // Update URL when search changes
-  useEffect(() => {
-    updateFilters({ search: searchDebounce })
-  }, [searchDebounce])
-
-  const updateFilters = (updates: Partial<typeof currentFilters>) => {
+  const updateFilters = useCallback((updates: Partial<typeof currentFilters>) => {
     const params = new URLSearchParams(searchParams.toString())
     
     // Update or remove parameters
@@ -48,7 +43,12 @@ export function JobFilters({ currentFilters }: JobFiltersProps) {
     params.delete('page')
     
     router.push(`?${params.toString()}`)
-  }
+  }, [currentFilters, searchParams, router])
+
+  // Update URL when search changes
+  useEffect(() => {
+    updateFilters({ search: searchDebounce })
+  }, [searchDebounce, updateFilters])
 
   const clearFilters = () => {
     setSearch('')
@@ -113,7 +113,7 @@ export function JobFilters({ currentFilters }: JobFiltersProps) {
           {/* Sort Dropdown */}
           <select
             value={currentFilters.sort}
-            onChange={(e) => updateFilters({ sort: e.target.value as any })}
+            onChange={(e) => updateFilters({ sort: e.target.value as 'newest' | 'oldest' | 'most_views' })}
             className="block w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="newest">Newest first</option>

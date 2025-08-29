@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { jobsServer, type JobStatus } from '@/lib/database/jobs'
+import type { JobStatus } from '@/lib/database/jobs'
 import type { Tables } from '@/types/supabase'
 
 type Job = Tables<'jobs'> & { status?: JobStatus }
@@ -37,7 +37,7 @@ export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
     }
   }, [isOpen, onToggle])
 
-  const handleStatusChange = async (newStatus: JobStatus) => {
+  const handleStatusChange = async () => {
     if (isLoading) return
     
     setIsLoading(true)
@@ -131,7 +131,7 @@ export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
           
           <div className="mb-4">
             <p className="text-sm text-gray-700">
-              Are you sure you want to delete <strong>"{job.title}"</strong> at <strong>{job.company}</strong>?
+              Are you sure you want to delete <strong>&ldquo;{job.title}&rdquo;</strong> at <strong>{job.company}</strong>?
             </p>
             <p className="text-sm text-gray-500 mt-2">
               This action cannot be undone. The job will be removed from all listings immediately.
@@ -196,7 +196,7 @@ export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
           </Link>
           
           <button
-            onClick={() => handleStatusChange(getNextStatus())}
+            onClick={handleStatusChange}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             <StatusIcon status={getNextStatus()} className="mr-3 h-4 w-4" />
