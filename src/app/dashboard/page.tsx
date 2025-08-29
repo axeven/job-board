@@ -1,40 +1,38 @@
 import { authServer } from '@/lib/auth/server'
+import { dashboardServer } from '@/lib/database/dashboard'
+import { jobsServer } from '@/lib/database/jobs'
 import { DashboardStats } from '@/components/dashboard/stats'
 import { RecentJobs } from '@/components/dashboard/recent-jobs'
-import { Tables } from '@/types/supabase'
-
-// Job type from database schema
-type Job = Tables<'jobs'>
+import { WelcomeSection } from '@/components/dashboard/welcome-section'
 
 // Force dynamic rendering since this page uses server-side auth
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  await authServer.requireAuth()
+  const user = await authServer.requireAuth({
+    redirectTo: '/auth/login',
+    redirectWithReturn: true
+  })
   
-  // TODO: In Phase 3, we'll fetch actual user jobs from database
-  // For now, use mock data to show the dashboard structure
-  const mockJobs: Job[] = []
+  // Fetch real user data and stats
+  const [userStats, userProfile, recentJobsResult] = await Promise.all([
+    dashboardServer.getUserJobStats(user.id),
+    dashboardServer.getUserProfile(user.id),
+    jobsServer.getByUser(user.id)
+  ])
   
-  const stats = {
-    totalJobs: mockJobs.length,
-    // Since there's no is_archived field in the database schema,
-    // we'll consider all jobs as active for now
-    activeJobs: mockJobs.length,
-  }
+  const recentJobs = recentJobsResult.data || []
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Overview</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          Welcome to your dashboard. Here&apos;s what&apos;s happening with your job postings.
-        </p>
-      </div>
+      <WelcomeSection 
+        userName={userProfile?.full_name || userProfile?.email || 'there'}
+        hasJobs={recentJobs.length > 0}
+      />
 
-      <DashboardStats stats={stats} />
+      <DashboardStats stats={userStats} />
       
-      <RecentJobs jobs={mockJobs.slice(0, 5)} />
+      <RecentJobs jobs={recentJobs.slice(0, 5)} />
     </div>
   )
 }
