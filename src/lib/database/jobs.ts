@@ -35,6 +35,8 @@ export const jobsClient = {
     let query = client
       .from('jobs')
       .select('*')
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
     if (filters?.job_type) {
@@ -59,6 +61,8 @@ export const jobsClient = {
       .from('jobs')
       .select('*')
       .eq('id', id)
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .single()
   },
 
@@ -99,6 +103,7 @@ export const jobsClient = {
       .from('jobs')
       .select('*')
       .eq('user_id', userId)
+      .is('deleted_at', null) // Exclude soft-deleted jobs
       .order('created_at', { ascending: false })
   },
 
@@ -108,6 +113,8 @@ export const jobsClient = {
     let query = client
       .from('jobs')
       .select('*')
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
     
     if (filters.location.length > 0) {
@@ -131,6 +138,8 @@ export const jobsClient = {
     return client
       .from('jobs')
       .select('location')
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .not('location', 'is', null)
       .not('location', 'eq', '')
   }
@@ -148,6 +157,8 @@ export const jobsServer = {
     let query = supabase
       .from('jobs')
       .select('*')
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
     if (filters?.job_type) {
@@ -182,6 +193,7 @@ export const jobsServer = {
       .from('jobs')
       .select('*')
       .eq('user_id', userId)
+      .is('deleted_at', null) // Exclude soft-deleted jobs
       .order('created_at', { ascending: false })
   },
 
@@ -191,6 +203,8 @@ export const jobsServer = {
     let query = supabase
       .from('jobs')
       .select('*')
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
     
     if (filters.location.length > 0) {
@@ -214,6 +228,8 @@ export const jobsServer = {
     return supabase
       .from('jobs')
       .select('location')
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .not('location', 'is', null)
       .not('location', 'eq', '')
   },
@@ -225,6 +241,8 @@ export const jobsServer = {
       .from('jobs')
       .select('*')
       .eq('id', id)
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .single()
   },
 
@@ -234,6 +252,8 @@ export const jobsServer = {
     return supabase
       .from('jobs')
       .select('id')
+      .eq('status', 'active')
+      .is('deleted_at', null)
   },
 
   // Create new job (server-side)
@@ -301,6 +321,7 @@ export const jobsServer = {
       .from('jobs')
       .select('*', { count: 'exact' })
       .eq('user_id', userId)
+      .is('deleted_at', null) // Exclude soft-deleted jobs
       .range(from, to)
     
     // Apply status filter
@@ -395,5 +416,80 @@ export const jobsServer = {
       .insert(duplicateJobData)
       .select()
       .single()
+  },
+
+  // Soft delete job
+  async softDeleteJob(jobId: string, userId: string) {
+    const supabase = await createServerClient()
+    
+    // First verify ownership
+    const isOwner = await this.validateOwnership(jobId, userId)
+    if (!isOwner) {
+      return { data: null, error: { message: 'Unauthorized' } }
+    }
+    
+    return supabase
+      .from('jobs')
+      .update({ 
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId)
+      .eq('user_id', userId)
+      .is('deleted_at', null) // Prevent double deletion
+      .select()
+      .single()
+  },
+
+  // Hard delete job (permanent deletion)
+  async hardDeleteJob(jobId: string, userId: string) {
+    const supabase = await createServerClient()
+    
+    // First verify ownership
+    const isOwner = await this.validateOwnership(jobId, userId)
+    if (!isOwner) {
+      return { data: null, error: { message: 'Unauthorized' } }
+    }
+    
+    return supabase
+      .from('jobs')
+      .delete()
+      .eq('id', jobId)
+      .eq('user_id', userId)
+  },
+
+  // Restore soft-deleted job
+  async restoreJob(jobId: string, userId: string) {
+    const supabase = await createServerClient()
+    
+    // First verify ownership
+    const isOwner = await this.validateOwnership(jobId, userId)
+    if (!isOwner) {
+      return { data: null, error: { message: 'Unauthorized' } }
+    }
+    
+    return supabase
+      .from('jobs')
+      .update({ 
+        deleted_at: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId)
+      .eq('user_id', userId)
+      .not('deleted_at', 'is', null) // Only restore soft-deleted jobs
+      .select()
+      .single()
+  },
+
+  // Get user's deleted jobs
+  async getUserDeletedJobs(userId: string) {
+    const supabase = await createServerClient()
+    
+    return supabase
+      .from('jobs')
+      .select('*')
+      .eq('user_id', userId)
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false })
   }
 }

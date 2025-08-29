@@ -142,7 +142,7 @@ export async function updateJobAction(
   }
 }
 
-export async function deleteJobAction(jobId: string): Promise<ActionState> {
+export async function deleteJobAction(jobId: string, permanent: boolean = false): Promise<ActionState> {
   // Require authentication
   const user = await authServer.requireAuth({
     redirectTo: '/auth/login',
@@ -159,7 +159,9 @@ export async function deleteJobAction(jobId: string): Promise<ActionState> {
   
   // Attempt to delete the job
   try {
-    const result = await jobsServer.delete(jobId)
+    const result = permanent 
+      ? await jobsServer.hardDeleteJob(jobId, user.id)
+      : await jobsServer.softDeleteJob(jobId, user.id)
     
     if (result.error) {
       return {
@@ -170,12 +172,63 @@ export async function deleteJobAction(jobId: string): Promise<ActionState> {
     // Revalidate relevant pages
     revalidatePath('/jobs')
     revalidatePath('/dashboard')
+    revalidatePath('/dashboard/jobs')
     
-    redirect('/dashboard')
+    return {
+      message: permanent 
+        ? 'Job posting permanently deleted successfully!' 
+        : 'Job posting deleted successfully!'
+    }
   } catch (error) {
+    // Check if this is a Next.js redirect (which is expected)
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      throw error // Re-throw redirect errors
+    }
+    
     console.error('Job deletion error:', error)
     return {
       message: 'Failed to delete job posting. Please try again.'
+    }
+  }
+}
+
+export async function restoreJobAction(jobId: string): Promise<ActionState> {
+  // Require authentication
+  const user = await authServer.requireAuth({
+    redirectTo: '/auth/login',
+    redirectWithReturn: true
+  })
+  
+  // Validate job ownership
+  const isOwner = await jobsServer.validateOwnership(jobId, user.id)
+  if (!isOwner) {
+    return {
+      message: 'You are not authorized to restore this job posting.'
+    }
+  }
+  
+  // Attempt to restore the job
+  try {
+    const result = await jobsServer.restoreJob(jobId, user.id)
+    
+    if (result.error) {
+      return {
+        message: `Failed to restore job posting: ${result.error.message}`
+      }
+    }
+    
+    // Revalidate relevant pages
+    revalidatePath('/jobs')
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/jobs')
+    
+    return {
+      message: 'Job posting restored successfully!'
+    }
+  } catch (error) {
+    console.error('Job restoration error:', error)
+    return {
+      message: 'Failed to restore job posting. Please try again.'
     }
   }
 }

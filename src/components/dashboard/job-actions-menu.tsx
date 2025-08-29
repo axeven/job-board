@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { DeleteJobButton } from './delete-job-button'
 import type { JobStatus } from '@/lib/database/jobs'
 import type { Tables } from '@/types/supabase'
 
@@ -16,7 +17,6 @@ interface JobActionsMenuProps {
 
 export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
@@ -72,23 +72,6 @@ export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
     }
   }
 
-  const handleDelete = async () => {
-    if (isLoading) return
-    
-    setIsLoading(true)
-    setShowDeleteConfirm(false)
-    onToggle()
-    
-    try {
-      // In a real implementation, this would be a server action
-      // For now, we'll just refresh the page
-      router.refresh()
-    } catch (error) {
-      console.error('Failed to delete job:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const getStatusToggleText = () => {
     switch (job.status) {
@@ -116,53 +99,12 @@ export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
     }
   }
 
-  if (showDeleteConfirm) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full">
-          <div className="flex items-center mb-4">
-            <div className="flex-shrink-0">
-              <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
-            </div>
-            <div className="ml-3">
-              <h3 className="text-lg font-medium text-gray-900">Delete Job</h3>
-            </div>
-          </div>
-          
-          <div className="mb-4">
-            <p className="text-sm text-gray-700">
-              Are you sure you want to delete <strong>&ldquo;{job.title}&rdquo;</strong> at <strong>{job.company}</strong>?
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              This action cannot be undone. The job will be removed from all listings immediately.
-            </p>
-          </div>
-          
-          <div className="flex justify-end space-x-3">
-            <button
-              onClick={() => setShowDeleteConfirm(false)}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Deleting...' : 'Delete Job'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="relative" ref={menuRef}>
       <button
         onClick={onToggle}
-        className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md"
+        className="p-2 text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
         disabled={isLoading}
       >
         <span className="sr-only">Open job actions menu</span>
@@ -213,13 +155,14 @@ export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
           
           <hr className="my-1" />
           
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
-          >
-            <TrashIcon className="mr-3 h-4 w-4" />
-            Delete Job
-          </button>
+          <DeleteJobButton 
+            job={job}
+            variant="menu-item"
+            onDeleted={() => {
+              onToggle()
+              router.refresh()
+            }}
+          />
         </div>
       )}
     </div>
@@ -295,21 +238,6 @@ function DuplicateIcon({ className }: { className?: string }) {
   )
 }
 
-function TrashIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-  )
-}
-
-function ExclamationTriangleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-    </svg>
-  )
-}
 
 function LoadingSpinner({ className }: { className?: string }) {
   return (

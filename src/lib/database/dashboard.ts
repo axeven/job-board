@@ -25,34 +25,38 @@ export const dashboardServer = {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     
     try {
-      // Get total jobs count
+      // Get total jobs count (excluding deleted)
       const { count: totalJobs, error: totalError } = await supabase
         .from('jobs')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
+        .is('deleted_at', null)
       
       if (totalError) {
         console.error('Error fetching total jobs:', totalError)
         throw totalError
       }
       
-      // Get active jobs count (assuming we'll add status later, for now all are active)
+      // Get active jobs count
       const { count: activeJobs, error: activeError } = await supabase
         .from('jobs')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
+        .eq('status', 'active')
+        .is('deleted_at', null)
       
       if (activeError) {
         console.error('Error fetching active jobs:', activeError)
         throw activeError
       }
       
-      // Get jobs posted this month
+      // Get jobs posted this month (excluding deleted)
       const { count: jobsThisMonth, error: monthError } = await supabase
         .from('jobs')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
         .gte('created_at', startOfMonth.toISOString())
+        .is('deleted_at', null)
       
       if (monthError) {
         console.error('Error fetching jobs this month:', monthError)
@@ -77,7 +81,7 @@ export const dashboardServer = {
   },
   
   // Get user profile information
-  async getUserProfile(userId: string): Promise<UserProfile | null> {
+  async getUserProfile(_userId: string): Promise<UserProfile | null> {
     const supabase = await createServerClient()
     
     try {
@@ -106,7 +110,7 @@ export const dashboardServer = {
   },
   
   // Get recent activity (placeholder for future implementation)
-  async getRecentActivity(userId: string) {
+  async getRecentActivity(_userId: string) {
     // This is a placeholder for future activity tracking
     return []
   }
