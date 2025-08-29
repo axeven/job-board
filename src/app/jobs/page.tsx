@@ -1,8 +1,9 @@
 import { Metadata } from 'next'
 import { jobsServer } from '@/lib/database/jobs'
-import { JobListingGrid } from '@/components/jobs/job-listing-grid'
+import { JobsPageClient } from '@/components/jobs/jobs-page-client'
 import { JobsPageHeader } from '@/components/jobs/jobs-page-header'
 import { JobErrorState } from '@/components/jobs/job-error-state'
+import { urlParamsToFilters } from '@/lib/utils/url-filters'
 
 export const metadata: Metadata = {
   title: 'Jobs - Job Board',
@@ -10,20 +11,52 @@ export const metadata: Metadata = {
   keywords: ['jobs', 'careers', 'employment', 'opportunities'],
 }
 
-export default async function JobsPage() {
+export default async function JobsPage({ 
+  searchParams 
+}: { 
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   try {
-    const { data: jobs, error } = await jobsServer.getAll()
+    // Await searchParams and parse initial filters from URL params
+    const params = await searchParams
+    const urlSearchParams = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        urlSearchParams.set(key, Array.isArray(value) ? value.join(',') : value)
+      }
+    })
+    const initialFilters = urlParamsToFilters(urlSearchParams)
     
-    if (error) {
-      throw new Error(error.message || 'Failed to load jobs')
+    // Get all jobs and available locations
+    const [jobsResult, locationsResult] = await Promise.all([
+      jobsServer.getAll(),
+      jobsServer.getUniqueLocations()
+    ])
+    
+    if (jobsResult.error) {
+      throw new Error(jobsResult.error.message || 'Failed to load jobs')
     }
 
+    // Extract unique locations from the results
+    const uniqueLocations = [...new Set(
+      (locationsResult.data || [])
+        .map(item => item.location)
+        .filter(Boolean)
+    )].sort()
+
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <JobsPageHeader />
-          <JobListingGrid jobs={jobs || []} />
+      <div>
+        <div className="bg-gray-50 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <JobsPageHeader />
+          </div>
         </div>
+        
+        <JobsPageClient 
+          initialJobs={jobsResult.data || []}
+          initialFilters={initialFilters}
+          availableLocations={uniqueLocations}
+        />
       </div>
     )
   } catch (error) {
