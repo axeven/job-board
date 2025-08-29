@@ -15,6 +15,8 @@ export type ActionState = {
     job_type?: string[]
   }
   message?: string
+  success?: boolean
+  error?: string
 }
 
 export async function createJobAction(
@@ -55,7 +57,8 @@ async function createJobWithStatus(
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Invalid form data. Please check your inputs.'
+      message: 'Invalid form data. Please check your inputs.',
+      error: 'Invalid form data. Please check your inputs.'
     }
   }
   
@@ -71,7 +74,8 @@ async function createJobWithStatus(
     
     if (result.error) {
       return {
-        message: `Failed to ${status === 'draft' ? 'save draft' : 'create job posting'}: ${result.error.message}`
+        message: `Failed to ${status === 'draft' ? 'save draft' : 'create job posting'}: ${result.error.message}`,
+        error: result.error.message
       }
     }
     
@@ -86,7 +90,8 @@ async function createJobWithStatus(
     } else {
       // For drafts, redirect to dashboard/jobs with success message
       return {
-        message: 'Draft saved successfully! You can publish it later from your dashboard.'
+        message: 'Draft saved successfully! You can publish it later from your dashboard.',
+        success: true
       }
     }
   } catch (error) {
@@ -97,7 +102,8 @@ async function createJobWithStatus(
     
     console.error('Job creation error:', error)
     return {
-      message: `Failed to ${status === 'draft' ? 'save draft' : 'create job posting'}. Please try again.`
+      message: `Failed to ${status === 'draft' ? 'save draft' : 'create job posting'}. Please try again.`,
+      error: `Failed to ${status === 'draft' ? 'save draft' : 'create job posting'}. Please try again.`
     }
   }
 }
@@ -134,7 +140,8 @@ export async function updateJobAction(
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Invalid form data. Please check your inputs.'
+      message: 'Invalid form data. Please check your inputs.',
+      error: 'Invalid form data. Please check your inputs.'
     }
   }
   

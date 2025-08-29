@@ -1,20 +1,43 @@
 'use client'
 
-import { useActionState, useRef, useState, useTransition } from 'react'
+import { useActionState, useRef, useState, useTransition, useEffect } from 'react'
 import { createJobAction, createDraftJobAction, type ActionState } from '@/lib/actions/job-actions'
 import { FormField } from '@/components/ui/form-field'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { JobTypeSelect } from './job-type-select'
 import { FormActions } from './form-actions'
+import { useToast } from '@/lib/toast-context'
 
 const initialState: ActionState = {}
 
 export function JobCreationForm() {
   const [state, formAction] = useActionState(createJobAction, initialState)
   const [draftState, draftFormAction] = useActionState(createDraftJobAction, initialState)
-  const [, startTransition] = useTransition()
+  const [isPending, startTransition] = useTransition()
   const formRef = useRef<HTMLFormElement>(null)
   const [isDraftSubmission, setIsDraftSubmission] = useState(false)
+  const { toast } = useToast()
+  
+  // Handle success/error toasts
+  useEffect(() => {
+    if (state.success && !isDraftSubmission) {
+      toast.success('Job posted successfully!', 'Your job posting is now live and visible to candidates.')
+      setIsDraftSubmission(false)
+    } else if (state.error && !isDraftSubmission) {
+      toast.error('Failed to post job', state.error)
+      setIsDraftSubmission(false)
+    }
+  }, [state, isDraftSubmission, toast])
+  
+  useEffect(() => {
+    if (draftState.success && isDraftSubmission) {
+      toast.success('Draft saved successfully!', 'You can continue editing your job posting later.')
+      setIsDraftSubmission(false)
+    } else if (draftState.error && isDraftSubmission) {
+      toast.error('Failed to save draft', draftState.error)
+      setIsDraftSubmission(false)
+    }
+  }, [draftState, isDraftSubmission, toast])
   
   const handleDraftSave = () => {
     if (formRef.current) {
