@@ -83,12 +83,17 @@ export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
     onToggle()
     
     try {
-      // Store current scroll position before navigation
-      const scrollPosition = window.scrollY
-      sessionStorage.setItem('dashboardScrollPosition', scrollPosition.toString())
+      // Use the duplicateJobAction server action
+      const { duplicateJobAction } = await import('@/lib/actions/job-actions')
+      const result = await duplicateJobAction(job.id)
       
-      // Navigate to post-job page to create a new job (simulating duplicate)
-      router.push('/post-job')
+      if (result.duplicatedJobId) {
+        // Redirect to edit the duplicated job
+        router.push(`/dashboard/jobs/${result.duplicatedJobId}/edit`)
+      } else {
+        console.error('Failed to duplicate job:', result.message)
+        // Show some user feedback here in a real implementation
+      }
     } catch (error) {
       console.error('Failed to duplicate job:', error)
     } finally {

@@ -340,3 +340,36 @@ export async function updateJobStatusAction(jobId: string, status: 'active' | 'c
     }
   }
 }
+
+export async function duplicateJobAction(jobId: string): Promise<ActionState & { duplicatedJobId?: string }> {
+  // Require authentication
+  const user = await authServer.requireAuth({
+    redirectTo: '/auth/login',
+    redirectWithReturn: true
+  })
+  
+  // Attempt to duplicate the job
+  try {
+    const result = await jobsServer.duplicateJob(jobId, user.id)
+    
+    if (result.error) {
+      return {
+        message: `Failed to duplicate job: ${result.error.message}`
+      }
+    }
+    
+    // Revalidate relevant pages
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/jobs')
+    
+    return {
+      message: 'Job duplicated successfully! You can now edit the copy.',
+      duplicatedJobId: result.data.id
+    }
+  } catch (error) {
+    console.error('Job duplication error:', error)
+    return {
+      message: 'Failed to duplicate job. Please try again.'
+    }
+  }
+}
