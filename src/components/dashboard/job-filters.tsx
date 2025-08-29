@@ -14,24 +14,39 @@ interface JobFiltersProps {
 
 export function JobFilters({ currentFilters }: JobFiltersProps) {
   const [search, setSearch] = useState(currentFilters.search)
-  const [searchDebounce, setSearchDebounce] = useState(currentFilters.search)
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Debounce search input
+  // Debounced search update
   useEffect(() => {
     const timer = setTimeout(() => {
-      setSearchDebounce(search)
-    }, 300)
+      if (search !== currentFilters.search) {
+        const params = new URLSearchParams(searchParams.toString())
+        
+        if (search === '') {
+          params.delete('search')
+        } else {
+          params.set('search', search)
+        }
+        
+        // Reset to page 1 when search changes
+        params.delete('page')
+        
+        const newUrl = `?${params.toString()}`
+        if (newUrl !== `?${searchParams.toString()}`) {
+          router.push(newUrl)
+        }
+      }
+    }, 500) // Increased debounce time
 
     return () => clearTimeout(timer)
-  }, [search])
+  }, [search, currentFilters.search, searchParams, router])
 
   const updateFilters = useCallback((updates: Partial<typeof currentFilters>) => {
     const params = new URLSearchParams(searchParams.toString())
     
     // Update or remove parameters
-    Object.entries({ ...currentFilters, ...updates }).forEach(([key, value]) => {
+    Object.entries(updates).forEach(([key, value]) => {
       if (value === 'all' || value === '' || value === 'newest') {
         params.delete(key)
       } else {
@@ -43,12 +58,7 @@ export function JobFilters({ currentFilters }: JobFiltersProps) {
     params.delete('page')
     
     router.push(`?${params.toString()}`)
-  }, [currentFilters, searchParams, router])
-
-  // Update URL when search changes
-  useEffect(() => {
-    updateFilters({ search: searchDebounce })
-  }, [searchDebounce, updateFilters])
+  }, [searchParams, router])
 
   const clearFilters = () => {
     setSearch('')

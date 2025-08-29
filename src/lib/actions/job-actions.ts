@@ -21,6 +21,21 @@ export async function createJobAction(
   prevState: ActionState | undefined,
   formData: FormData
 ): Promise<ActionState> {
+  return await createJobWithStatus(prevState, formData, 'active')
+}
+
+export async function createDraftJobAction(
+  prevState: ActionState | undefined,
+  formData: FormData
+): Promise<ActionState> {
+  return await createJobWithStatus(prevState, formData, 'draft')
+}
+
+async function createJobWithStatus(
+  prevState: ActionState | undefined,
+  formData: FormData,
+  status: 'active' | 'draft'
+): Promise<ActionState> {
   // Require authentication
   const user = await authServer.requireAuth({
     redirectTo: '/auth/login',
@@ -48,6 +63,7 @@ export async function createJobAction(
   try {
     const jobData = {
       ...validatedFields.data,
+      status,
       user_id: user.id
     }
     
@@ -55,16 +71,24 @@ export async function createJobAction(
     
     if (result.error) {
       return {
-        message: `Failed to create job posting: ${result.error.message}`
+        message: `Failed to ${status === 'draft' ? 'save draft' : 'create job posting'}: ${result.error.message}`
       }
     }
     
     // Revalidate relevant pages
     revalidatePath('/jobs')
     revalidatePath('/dashboard')
+    revalidatePath('/dashboard/jobs')
     
-    // Redirect to the created job page
-    redirect(`/jobs/${result.data.id}`)
+    if (status === 'active') {
+      // Redirect to the created job page for active jobs
+      redirect(`/jobs/${result.data.id}`)
+    } else {
+      // For drafts, redirect to dashboard/jobs with success message
+      return {
+        message: 'Draft saved successfully! You can publish it later from your dashboard.'
+      }
+    }
   } catch (error) {
     // Check if this is a Next.js redirect (which is expected)
     if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
@@ -73,7 +97,7 @@ export async function createJobAction(
     
     console.error('Job creation error:', error)
     return {
-      message: 'Failed to create job posting. Please try again.'
+      message: `Failed to ${status === 'draft' ? 'save draft' : 'create job posting'}. Please try again.`
     }
   }
 }
@@ -229,6 +253,90 @@ export async function restoreJobAction(jobId: string): Promise<ActionState> {
     console.error('Job restoration error:', error)
     return {
       message: 'Failed to restore job posting. Please try again.'
+    }
+  }
+}
+
+export async function publishDraftJobAction(jobId: string): Promise<ActionState> {
+  // Require authentication
+  const user = await authServer.requireAuth({
+    redirectTo: '/auth/login',
+    redirectWithReturn: true
+  })
+  
+  // Validate job ownership
+  const isOwner = await jobsServer.validateOwnership(jobId, user.id)
+  if (!isOwner) {
+    return {
+      message: 'You are not authorized to publish this job posting.'
+    }
+  }
+  
+  // Attempt to publish the draft job
+  try {
+    const result = await jobsServer.updateJobStatus(jobId, user.id, 'active')
+    
+    if (result.error) {
+      return {
+        message: `Failed to publish job posting: ${result.error.message}`
+      }
+    }
+    
+    // Revalidate relevant pages
+    revalidatePath('/jobs')
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/jobs')
+    revalidatePath(`/jobs/${jobId}`)
+    
+    return {
+      message: 'Job posting published successfully!'
+    }
+  } catch (error) {
+    console.error('Job publication error:', error)
+    return {
+      message: 'Failed to publish job posting. Please try again.'
+    }
+  }
+}
+
+export async function updateJobStatusAction(jobId: string, status: 'active' | 'closed'): Promise<ActionState> {
+  // Require authentication
+  const user = await authServer.requireAuth({
+    redirectTo: '/auth/login',
+    redirectWithReturn: true
+  })
+  
+  // Validate job ownership
+  const isOwner = await jobsServer.validateOwnership(jobId, user.id)
+  if (!isOwner) {
+    return {
+      message: 'You are not authorized to update this job posting.'
+    }
+  }
+  
+  // Attempt to update job status
+  try {
+    const result = await jobsServer.updateJobStatus(jobId, user.id, status)
+    
+    if (result.error) {
+      return {
+        message: `Failed to update job status: ${result.error.message}`
+      }
+    }
+    
+    // Revalidate relevant pages
+    revalidatePath('/jobs')
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/jobs')
+    revalidatePath(`/jobs/${jobId}`)
+    
+    return {
+      message: `Job posting ${status === 'active' ? 'activated' : 'closed'} successfully!`
+    }
+  } catch (error) {
+    console.error('Job status update error:', error)
+    return {
+      message: 'Failed to update job status. Please try again.'
     }
   }
 }

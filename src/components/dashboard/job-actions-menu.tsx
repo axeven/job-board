@@ -44,9 +44,30 @@ export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
     onToggle()
     
     try {
-      // In a real implementation, this would be a server action
-      // For now, we'll just refresh the page to simulate the change
-      router.refresh()
+      const nextStatus = getNextStatus()
+      
+      // Use appropriate server action based on current status
+      if (job.status === 'draft' && nextStatus === 'active') {
+        const { publishDraftJobAction } = await import('@/lib/actions/job-actions')
+        const result = await publishDraftJobAction(job.id)
+        
+        if (result.message && !result.errors) {
+          // Success - the server action will handle revalidation
+          // No need to refresh manually
+        } else {
+          console.error('Failed to publish job:', result.message)
+        }
+      } else if ((job.status === 'active' && nextStatus === 'closed') || (job.status === 'closed' && nextStatus === 'active')) {
+        const { updateJobStatusAction } = await import('@/lib/actions/job-actions')
+        const result = await updateJobStatusAction(job.id, nextStatus)
+        
+        if (result.message && !result.errors) {
+          // Success - the server action will handle revalidation
+          // No need to refresh manually
+        } else {
+          console.error('Failed to update job status:', result.message)
+        }
+      }
     } catch (error) {
       console.error('Failed to update job status:', error)
       // Show error toast in real implementation
@@ -62,9 +83,12 @@ export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
     onToggle()
     
     try {
-      // In a real implementation, this would be a server action
-      // For now, we'll just refresh the page
-      router.refresh()
+      // Store current scroll position before navigation
+      const scrollPosition = window.scrollY
+      sessionStorage.setItem('dashboardScrollPosition', scrollPosition.toString())
+      
+      // Navigate to post-job page to create a new job (simulating duplicate)
+      router.push('/post-job')
     } catch (error) {
       console.error('Failed to duplicate job:', error)
     } finally {
@@ -160,7 +184,7 @@ export function JobActionsMenu({ job, isOpen, onToggle }: JobActionsMenuProps) {
             variant="menu-item"
             onDeleted={() => {
               onToggle()
-              router.refresh()
+              // Don't refresh immediately - let the server action handle revalidation
             }}
           />
         </div>

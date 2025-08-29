@@ -5,6 +5,7 @@ import type { JobStatus } from '@/lib/database/jobs'
 import { MyJobsList } from '@/components/dashboard/my-jobs-list'
 import { JobFilters } from '@/components/dashboard/job-filters'
 import { EmptyJobsState } from '@/components/dashboard/empty-jobs-state'
+import { ScrollRestoration } from '@/components/dashboard/scroll-restoration'
 
 interface SearchParams {
   status?: 'all' | JobStatus
@@ -13,7 +14,8 @@ interface SearchParams {
   page?: string
 }
 
-export const dynamic = 'force-dynamic'
+// Removed force-dynamic to prevent constant refreshing
+// export const dynamic = 'force-dynamic'
 
 export default async function MyJobsPage({
   searchParams
@@ -47,6 +49,7 @@ export default async function MyJobsPage({
   
   return (
     <div className="space-y-6">
+      <ScrollRestoration />
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
