@@ -24,20 +24,19 @@ export function JobFiltersComponent({
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false)
 
   return (
-    <div className="bg-white shadow-sm border-b border-gray-200 mb-6">
+    <div className="bg-white shadow-sm border-b border-neutral-200 mb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop Filters */}
-        <div className="hidden md:flex items-center justify-between py-4 space-x-4">
-          <div className="flex items-center space-x-4 flex-1">
-            <SearchFilter 
-              query={filters.searchQuery}
-              onQueryChange={(searchQuery) => onFiltersChange({ searchQuery })}
-            />
+        <div className="hidden md:flex items-end justify-between py-4 gap-4">
+          <div className="flex items-end gap-4 flex-1">
+            <div className="flex-1 max-w-md">
+              <SearchFilter 
+                query={filters.searchQuery}
+                onQueryChange={(searchQuery) => onFiltersChange({ searchQuery })}
+              />
+            </div>
             
             <div className="w-48">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Location
-              </label>
               <LocationFilter
                 selectedLocations={filters.location}
                 availableLocations={availableLocations}
@@ -46,9 +45,6 @@ export function JobFiltersComponent({
             </div>
             
             <div className="w-44">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Job Type
-              </label>
               <JobTypeFilter
                 selectedTypes={filters.jobType}
                 onTypeChange={(jobType) => onFiltersChange({ jobType })}
@@ -59,7 +55,7 @@ export function JobFiltersComponent({
           {activeFilterCount > 0 && (
             <button
               onClick={onReset}
-              className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+              className="px-3 py-2 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 rounded-base transition-colors duration-base font-medium"
             >
               Reset ({activeFilterCount})
             </button>

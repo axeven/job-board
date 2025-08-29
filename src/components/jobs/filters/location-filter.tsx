@@ -44,43 +44,57 @@ export function LocationFilter({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+        className="relative w-full bg-white border border-neutral-300 rounded-base pl-3.5 pr-10 py-2 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 hover:border-neutral-400 transition-colors duration-base text-sm"
       >
-        <span className="block truncate">
+        <span className={`block truncate ${selectedLocations.length === 0 ? 'text-neutral-500' : 'text-neutral-900'}`}>
           {selectedLocations.length === 0 
-            ? 'All Locations' 
-            : `${selectedLocations.length} location${selectedLocations.length === 1 ? '' : 's'} selected`
+            ? 'Location' 
+            : `${selectedLocations.length} location${selectedLocations.length === 1 ? '' : 's'}`
           }
         </span>
-        <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+          <svg className={`h-4 w-4 text-neutral-600 transition-transform duration-base ${isOpen ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </span>
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+        <div className="absolute z-50 mt-1 w-full bg-white shadow-lg max-h-60 rounded-base py-1 border border-neutral-200 overflow-auto focus:outline-none text-sm">
           {availableLocations.length === 0 ? (
-            <div className="px-3 py-2 text-gray-500 text-sm">No locations available</div>
+            <div className="px-3 py-2 text-neutral-500">No locations available</div>
           ) : (
-            availableLocations.map((location) => (
-              <div
-                key={location}
-                className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-50"
-                onClick={() => toggleLocation(location)}
-              >
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedLocations.includes(location)}
-                    onChange={() => {}} // Controlled by onClick above
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-3 block text-gray-900">{location}</span>
-                </div>
-              </div>
-            ))
+            availableLocations.map((location) => {
+              const isSelected = selectedLocations.includes(location)
+              return (
+                <label
+                  key={location}
+                  className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-neutral-50 focus-within:bg-neutral-50 transition-colors duration-base flex items-center"
+                  onClick={() => toggleLocation(location)}
+                >
+                  <div className={`flex-shrink-0 w-4 h-4 mr-3 border rounded-xs transition-colors duration-base ${
+                    isSelected 
+                      ? 'bg-primary-600 border-primary-600' 
+                      : 'border-neutral-300 bg-white hover:border-neutral-400'
+                  }`}>
+                    {isSelected && (
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-neutral-900">{location}</span>
+                </label>
+              )
+            })
           )}
         </div>
       )}

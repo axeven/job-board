@@ -71,8 +71,8 @@ export function JobsPageClient({
           </div>
         ) : (
           <>
-            <div className="mb-6">
-              <p className="text-gray-600">
+            <div className="mb-8">
+              <p className="text-neutral-600">
                 {filteredJobs.length === 1 
                   ? '1 job found'
                   : `${filteredJobs.length} jobs found`
