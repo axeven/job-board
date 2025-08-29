@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { authServer } from '@/lib/auth/server'
-import { JobCreationForm } from '@/components/jobs/job-creation-form'
+import { DynamicJobCreationForm } from '@/lib/dynamic-imports'
 import { Navbar } from '@/components/layout/navbar'
 
 export const metadata: Metadata = {
@@ -39,7 +39,7 @@ export default async function PostJobPage() {
           
           {/* Form */}
           <div className="px-6 py-8">
-            <JobCreationForm />
+            <DynamicJobCreationForm />
           </div>
         </div>
         

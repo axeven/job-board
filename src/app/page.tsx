@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { Navbar } from '@/components/layout/navbar';
+import { generateHomeMetadata } from '@/lib/seo';
+import { WebsiteStructuredData } from '@/components/seo/job-structured-data';
+
+export const metadata = generateHomeMetadata();
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <WebsiteStructuredData />
       <Navbar />
       
       <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">

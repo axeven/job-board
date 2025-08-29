@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, Suspense } from 'react'
 import { Job } from '@/types/database'
 import { useJobFilters, JobFilters } from '@/hooks/use-job-filters'
-import { JobFiltersComponent } from './filters/job-filters'
+import { DynamicJobFilters } from '@/lib/dynamic-imports'
 import { JobListingGrid } from './job-listing-grid'
 
 interface JobsPageClientProps {
@@ -55,13 +55,21 @@ export function JobsPageClient({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <JobFiltersComponent
-        filters={filters}
-        onFiltersChange={updateFilters}
-        availableLocations={availableLocations}
-        activeFilterCount={activeFilterCount}
-        onReset={resetFilters}
-      />
+      <Suspense fallback={
+        <div className="flex gap-4 animate-pulse p-4">
+          <div className="h-10 bg-gray-200 rounded w-48"></div>
+          <div className="h-10 bg-gray-200 rounded w-32"></div>
+          <div className="h-10 bg-gray-200 rounded w-24"></div>
+        </div>
+      }>
+        <DynamicJobFilters
+          filters={filters}
+          onFiltersChange={updateFilters}
+          availableLocations={availableLocations}
+          activeFilterCount={activeFilterCount}
+          onReset={resetFilters}
+        />
+      </Suspense>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (

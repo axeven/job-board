@@ -2,6 +2,8 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { jobsServer } from '@/lib/database/jobs'
 import { JobDetailView } from '@/components/jobs/job-detail-view'
+import { generateJobMetadata } from '@/lib/seo'
+import { JobStructuredData, JobBreadcrumbStructuredData } from '@/components/seo/job-structured-data'
 
 interface JobDetailPageProps {
   params: Promise<{ id: string }>
@@ -30,28 +32,7 @@ export async function generateMetadata({ params }: JobDetailPageProps): Promise<
       }
     }
     
-    const description = job.description && job.description.length > 160
-      ? `${job.description.substring(0, 160)}...`
-      : job.description || 'Job opportunity available.'
-    
-    return {
-      title: `${job.title} at ${job.company} - Job Board`,
-      description,
-      keywords: [job.title, job.company, job.location, job.job_type, 'jobs', 'careers'].filter(Boolean),
-      openGraph: {
-        title: `${job.title} at ${job.company}`,
-        description: job.description && job.description.length > 200
-          ? `${job.description.substring(0, 200)}...`
-          : job.description || 'Job opportunity available.',
-        type: 'article',
-        url: `/jobs/${job.id}`,
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: `${job.title} at ${job.company}`,
-        description: description,
-      }
-    }
+    return generateJobMetadata(job)
   } catch {
     return {
       title: 'Job Not Found - Job Board',
@@ -71,7 +52,13 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
       notFound()
     }
     
-    return <JobDetailView job={job} />
+    return (
+      <>
+        <JobStructuredData job={job} />
+        <JobBreadcrumbStructuredData job={job} />
+        <JobDetailView job={job} />
+      </>
+    )
   } catch {
     notFound()
   }

@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { authServer } from '@/lib/auth/server'
 import { jobsServer } from '@/lib/database/jobs'
-import { JobEditForm } from '@/components/jobs/job-edit-form'
+import { DynamicJobEditForm } from '@/lib/dynamic-imports'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -85,7 +85,7 @@ export default async function JobEditPage({ params }: PageProps) {
       {/* Form Section */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow-sm rounded-lg">
-          <JobEditForm job={job} />
+          <DynamicJobEditForm job={job} />
         </div>
       </div>
     </div>

@@ -5,12 +5,9 @@ import { JobsPageHeader } from '@/components/jobs/jobs-page-header'
 import { JobErrorState } from '@/components/jobs/job-error-state'
 import { Navbar } from '@/components/layout/navbar'
 import { urlParamsToFilters } from '@/lib/utils/url-filters'
+import { generateJobsPageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Jobs - Job Board',
-  description: 'Browse available job opportunities from top companies',
-  keywords: ['jobs', 'careers', 'employment', 'opportunities'],
-}
+export const metadata: Metadata = generateJobsPageMetadata()
 
 export default async function JobsPage({ 
   searchParams 

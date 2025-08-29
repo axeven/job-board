@@ -46,7 +46,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                 </span>
               </div>
             </div>
-            <AuthButton variant="outline" size="sm" />
+            <AuthButton variant="outline" size="sm" showProfile={false} />
           </div>
         </div>
       </div>
