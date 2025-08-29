@@ -2,10 +2,25 @@ import { supabase } from '@/lib/supabase/client'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import type { JobInsert, JobUpdate, JobType } from '@/types/database'
 
+export type JobStatus = 'active' | 'draft' | 'closed'
+
 interface JobFilters {
   location: string[]
   jobType: ('Full-Time' | 'Part-Time' | 'Contract')[]
   searchQuery: string
+}
+
+interface MyJobsFilters {
+  status: 'all' | JobStatus
+  sort: 'newest' | 'oldest' | 'most_views'
+  search: string
+}
+
+interface JobsPagination {
+  page: number
+  limit: number
+  total: number
+  hasMore: boolean
 }
 
 // Client-side operations
@@ -269,5 +284,116 @@ export const jobsServer = {
     
     if (error) return false
     return data.user_id === userId
+  },
+
+  // Get user's jobs with filters and pagination
+  async getUserJobsWithFilters(
+    userId: string, 
+    filters: MyJobsFilters, 
+    pagination: { page: number; limit: number }
+  ) {
+    const supabase = await createServerClient()
+    const { page, limit } = pagination
+    const from = (page - 1) * limit
+    const to = from + limit - 1
+    
+    let query = supabase
+      .from('jobs')
+      .select('*', { count: 'exact' })
+      .eq('user_id', userId)
+      .range(from, to)
+    
+    // Apply status filter
+    if (filters.status !== 'all') {
+      query = query.eq('status', filters.status)
+    }
+    
+    // Apply search filter
+    if (filters.search) {
+      query = query.or(`title.ilike.%${filters.search}%,company.ilike.%${filters.search}%`)
+    }
+    
+    // Apply sorting
+    switch (filters.sort) {
+      case 'newest':
+        query = query.order('created_at', { ascending: false })
+        break
+      case 'oldest':
+        query = query.order('created_at', { ascending: true })
+        break
+      case 'most_views':
+        // For now, sort by created_at since we don't have views yet
+        query = query.order('created_at', { ascending: false })
+        break
+      default:
+        query = query.order('created_at', { ascending: false })
+    }
+    
+    const result = await query
+    
+    return {
+      ...result,
+      pagination: {
+        page,
+        limit,
+        total: result.count || 0,
+        hasMore: (result.count || 0) > to + 1
+      }
+    }
+  },
+
+  // Update job status
+  async updateJobStatus(jobId: string, userId: string, status: JobStatus) {
+    const supabase = await createServerClient()
+    
+    // First verify ownership
+    const isOwner = await this.validateOwnership(jobId, userId)
+    if (!isOwner) {
+      return { data: null, error: { message: 'Unauthorized' } }
+    }
+    
+    return supabase
+      .from('jobs')
+      .update({ 
+        status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId)
+      .select()
+      .single()
+  },
+
+  // Duplicate job
+  async duplicateJob(jobId: string, userId: string) {
+    const supabase = await createServerClient()
+    
+    // First get the original job
+    const { data: originalJob, error: fetchError } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('id', jobId)
+      .eq('user_id', userId)
+      .single()
+    
+    if (fetchError || !originalJob) {
+      return { data: null, error: { message: 'Job not found or unauthorized' } }
+    }
+    
+    // Create the duplicate with modified title and draft status
+    const duplicateJobData = {
+      title: `${originalJob.title} (Copy)`,
+      company: originalJob.company,
+      description: originalJob.description,
+      location: originalJob.location,
+      job_type: originalJob.job_type,
+      status: 'draft' as JobStatus,
+      user_id: userId
+    }
+    
+    return supabase
+      .from('jobs')
+      .insert(duplicateJobData)
+      .select()
+      .single()
   }
 }
