@@ -219,5 +219,55 @@ export const jobsServer = {
     return supabase
       .from('jobs')
       .select('id')
+  },
+
+  // Create new job (server-side)
+  async create(job: JobInsert) {
+    const supabase = await createServerClient()
+    return supabase
+      .from('jobs')
+      .insert({
+        ...job,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+  },
+
+  // Update existing job (server-side)
+  async update(id: string, job: JobUpdate) {
+    const supabase = await createServerClient()
+    return supabase
+      .from('jobs')
+      .update({
+        ...job,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single()
+  },
+
+  // Delete job (server-side)
+  async delete(id: string) {
+    const supabase = await createServerClient()
+    return supabase
+      .from('jobs')
+      .delete()
+      .eq('id', id)
+  },
+
+  // Validate job ownership
+  async validateOwnership(jobId: string, userId: string) {
+    const supabase = await createServerClient()
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('user_id')
+      .eq('id', jobId)
+      .single()
+    
+    if (error) return false
+    return data.user_id === userId
   }
 }

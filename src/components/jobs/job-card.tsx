@@ -29,8 +29,14 @@ export function JobCard({ job }: JobCardProps) {
     
     const date = new Date(dateString)
     const now = new Date()
-    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffMinutes = Math.floor(diffTime / (1000 * 60))
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60))
+    const diffInDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
     
+    if (diffMinutes < 1) return 'Just now'
+    if (diffMinutes < 60) return `${diffMinutes}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
     if (diffInDays === 0) return 'Today'
     if (diffInDays === 1) return 'Yesterday'
     if (diffInDays < 7) return `${diffInDays} days ago`

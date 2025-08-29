@@ -51,8 +51,13 @@ function PostedDate({ date }: { date: string | null }) {
     const date = new Date(dateString)
     const now = new Date()
     const diffTime = Math.abs(now.getTime() - date.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    const diffMinutes = Math.floor(diffTime / (1000 * 60))
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60))
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
     
+    if (diffMinutes < 1) return 'Posted just now'
+    if (diffMinutes < 60) return `Posted ${diffMinutes} ${diffMinutes === 1 ? 'minute' : 'minutes'} ago`
+    if (diffHours < 24) return `Posted ${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`
     if (diffDays === 1) return 'Posted yesterday'
     if (diffDays < 7) return `Posted ${diffDays} days ago`
     if (diffDays < 30) {

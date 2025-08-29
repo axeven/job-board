@@ -50,10 +50,14 @@ export const authServer = {
       const redirectTo = options.redirectTo || '/auth/login'
       
       if (options.redirectWithReturn) {
-        const currentPath = new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000')
-        currentPath.pathname = redirectTo
-        currentPath.searchParams.set('redirectedFrom', '/dashboard')
-        redirect(currentPath.toString())
+        // Get the current path from headers
+        const { headers } = await import('next/headers')
+        const headersList = await headers()
+        const pathname = headersList.get('x-pathname') || '/post-job'
+        
+        const loginUrl = new URL(redirectTo, process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000')
+        loginUrl.searchParams.set('return', pathname)
+        redirect(loginUrl.toString())
       } else {
         redirect(redirectTo)
       }
