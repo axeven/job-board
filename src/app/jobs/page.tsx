@@ -3,6 +3,7 @@ import { jobsServer } from '@/lib/database/jobs'
 import { JobsPageClient } from '@/components/jobs/jobs-page-client'
 import { JobsPageHeader } from '@/components/jobs/jobs-page-header'
 import { JobErrorState } from '@/components/jobs/job-error-state'
+import { Navbar } from '@/components/layout/navbar'
 import { urlParamsToFilters } from '@/lib/utils/url-filters'
 
 export const metadata: Metadata = {
@@ -45,8 +46,9 @@ export default async function JobsPage({
     )].sort()
 
     return (
-      <div>
-        <div className="bg-gray-50 py-8">
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <JobsPageHeader />
           </div>
@@ -61,12 +63,15 @@ export default async function JobsPage({
     )
   } catch (error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <JobsPageHeader />
-          <JobErrorState 
-            error={error instanceof Error ? error.message : 'An unexpected error occurred. Please try again later.'}
-          />
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <JobsPageHeader />
+            <JobErrorState 
+              error={error instanceof Error ? error.message : 'An unexpected error occurred. Please try again later.'}
+            />
+          </div>
         </div>
       </div>
     )

@@ -201,5 +201,23 @@ export const jobsServer = {
       .select('location')
       .not('location', 'is', null)
       .not('location', 'eq', '')
+  },
+
+  // Get single job by ID
+  async getJobById(id: string) {
+    const supabase = await createServerClient()
+    return supabase
+      .from('jobs')
+      .select('*')
+      .eq('id', id)
+      .single()
+  },
+
+  // Get all job IDs for static generation
+  async getAllJobIds() {
+    const supabase = await createServerClient()
+    return supabase
+      .from('jobs')
+      .select('id')
   }
 }

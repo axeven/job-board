@@ -1,8 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { filtersToUrlParams, urlParamsToFilters } from '@/lib/utils/url-filters'
+import { useState, useCallback } from 'react'
 
 export interface JobFilters {
   location: string[]
@@ -11,26 +9,18 @@ export interface JobFilters {
 }
 
 export function useJobFilters(initialFilters?: JobFilters) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  
   const [filters, setFilters] = useState<JobFilters>(() => {
-    if (initialFilters) {
-      return initialFilters
+    return initialFilters || {
+      location: [],
+      jobType: [],
+      searchQuery: ''
     }
-    return urlParamsToFilters(searchParams)
   })
 
   const updateFilters = useCallback((newFilters: Partial<JobFilters>) => {
     const updatedFilters = { ...filters, ...newFilters }
     setFilters(updatedFilters)
-    
-    const params = filtersToUrlParams(updatedFilters)
-    const queryString = params.toString()
-    const newUrl = queryString ? `/jobs?${queryString}` : '/jobs'
-    
-    router.push(newUrl, { scroll: false })
-  }, [filters, router])
+  }, [filters])
 
   const resetFilters = useCallback(() => {
     const emptyFilters: JobFilters = {
@@ -39,8 +29,7 @@ export function useJobFilters(initialFilters?: JobFilters) {
       searchQuery: ''
     }
     setFilters(emptyFilters)
-    router.push('/jobs', { scroll: false })
-  }, [router])
+  }, [])
 
   const hasActiveFilters = filters.location.length > 0 || 
                           filters.jobType.length > 0 || 
