@@ -95,7 +95,7 @@ src/
 ```
 
 ## 🤖 What will be implemented given more time
-- [x] AI assisted job description enhancements and generation. As an employer, I can generate the job description or enhance it based on the data that I have inputted on the create job form.s
+- [x] ~AI assisted job description enhancements and generation. As an employer, I can generate the job description or enhance it based on the data that I have inputted on the create job form.~
 - Job application management. As a job seeker, I can apply on the job that I find in the website direcly. As an employer, I can manage the applications that I have received on my job postings. 
 - Semantic job search. As a job seeker, I can search for job postings that is related to my keywords, not just searching for exact word occurrence.
 - AI assistent resume analytics. As an employer, I can get advice from AI whether an applicant is a good fit for the job posting applied
