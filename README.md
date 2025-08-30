@@ -78,20 +78,41 @@ A modern, full-featured job board application where companies can post jobs and 
 ## 📁 Project Structure
 
 ```
-src/
-├── app/                 # Next.js App Router pages
-├── components/          # Reusable UI components
-│   ├── ui/             # Core design system components
-│   ├── auth/           # Authentication components
-│   ├── jobs/           # Job-related components
-│   └── dashboard/      # Dashboard components
-├── lib/                # Utilities and configurations
-│   ├── auth/           # Authentication logic
-│   ├── database/       # Database operations
-│   ├── hooks/          # Custom React hooks
-│   └── utils/          # Helper functions
-├── styles/             # Global styles and design tokens
-└── types/              # TypeScript type definitions
+job-board/
+├── src/
+│   ├── app/                    # Next.js 15 App Router
+│   │   ├── api/               # API routes
+│   │   │   └── ai/            # AI enhancement endpoints
+│   │   ├── auth/              # Authentication pages
+│   │   ├── dashboard/         # User dashboard
+│   │   ├── jobs/              # Job listing & detail pages
+│   │   └── post-job/          # Job creation page
+│   ├── components/            # Reusable React components
+│   │   ├── ui/               # Core design system components
+│   │   ├── auth/             # Authentication components
+│   │   ├── jobs/             # Job-related components
+│   │   ├── dashboard/        # Dashboard components
+│   │   ├── layout/           # Navigation & layout
+│   │   ├── loading/          # Loading skeletons
+│   │   ├── error/            # Error boundaries
+│   │   ├── seo/              # SEO components
+│   │   └── performance/      # Web Vitals monitoring
+│   ├── lib/                  # Core utilities & business logic
+│   │   ├── auth/             # Authentication logic & context
+│   │   ├── database/         # Database operations
+│   │   ├── supabase/         # Supabase client/server
+│   │   ├── ai/               # AI integration (OpenAI)
+│   │   ├── actions/          # Server actions
+│   │   ├── schemas/          # Zod validation schemas  
+│   │   └── utils/            # Helper functions
+│   ├── hooks/                # Custom React hooks
+│   └── styles/               # Global CSS
+├── supabase/                 # Database migrations & config
+├── __tests__/                # Test files
+├── public/                   # Static assets
+├── scripts/                  # Build & deployment scripts
+├── types/                    # Global TypeScript definitions
+└── docs/                     # Documentation
 ```
 
 ## 🤖 What will be implemented given more time
