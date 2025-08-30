@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Job } from '@/types/database'
+import { stripMarkdownFormatting } from '@/lib/utils/markdown-formatter'
 
 interface JobCardProps {
   job: Job
@@ -79,7 +80,7 @@ export function JobCard({ job }: JobCardProps) {
 
         <div className="mb-4">
           <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
-            {truncateDescription(job.description)}
+            {truncateDescription(stripMarkdownFormatting(job.description))}
           </p>
         </div>
 

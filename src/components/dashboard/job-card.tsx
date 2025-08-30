@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { JobActionsMenu } from './job-actions-menu'
+import { stripMarkdownFormatting } from '@/lib/utils/markdown-formatter'
 import type { Tables } from '@/types/supabase'
 import type { JobStatus } from '@/lib/database/jobs'
 
@@ -107,7 +108,7 @@ export function JobCard({ job }: JobCardProps) {
         {/* Description */}
         <div className="mb-4">
           <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
-            {truncateDescription(job.description)}
+            {truncateDescription(stripMarkdownFormatting(job.description))}
           </p>
         </div>
         

@@ -1,22 +1,11 @@
 import { Job } from '@/types/database'
+import { formatJobDescription } from '@/lib/utils/markdown-formatter'
 
 interface JobDetailContentProps {
   job: Job
 }
 
 export function JobDetailContent({ job }: JobDetailContentProps) {
-  // Simple HTML sanitization - in production, consider using DOMPurify
-  const sanitizeHtml = (html: string) => {
-    // For now, we'll just escape HTML and preserve line breaks
-    return html
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;')
-      .replace(/\n/g, '<br>')
-  }
-
   return (
     <main className="prose prose-lg max-w-none">
       <section>
@@ -24,8 +13,8 @@ export function JobDetailContent({ job }: JobDetailContentProps) {
         
         {job.description ? (
           <div 
-            className="text-gray-700 leading-relaxed whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(job.description) }}
+            className="text-gray-700 leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: formatJobDescription(job.description) }}
           />
         ) : (
           <p className="text-gray-500 italic">No job description provided.</p>
