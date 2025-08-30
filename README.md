@@ -42,33 +42,34 @@ A modern, full-featured job board application where companies can post jobs and 
 ## 🚀 Quick Start
 
 1. **Clone the repository**:
-```bash
-git clone https://github.com/axeven/job-board.git
-cd job-board
-```
+    ```bash
+    git clone https://github.com/axeven/job-board.git
+    cd job-board
+    ```
 
 2. **Install dependencies**:
-```bash
-npm install
-```
+    ```bash
+    npm install
+    ```
 
 3. **Environment Setup**:
-Duplicate `.env.example` file in the root directory as `.env.local`
+    
+    Duplicate `.env.example` file in the root directory as `.env.local`. Update the env values with yours.
 
 4. **Database Setup**:
    - Create a new project on [Supabase](https://supabase.com)
    - Run the database migrations from `/supabase/migrations`
-```bash
-npm run db:reset     # reset the db
-npx supabase db push # run new migrations only
-```
+    ```bash
+    npm run db:reset     # reset the db
+    npx supabase db push # run new migrations only
+    ```
 
 5. **Start Development**:
-```bash
-npm run dev        # Start dev server with Turbopack
-npm run build      # Build for production
-npm run lint       # Check code quality
-```
+    ```bash
+    npm run dev        # Start dev server with Turbopack
+    npm run build      # Build for production
+    npm run lint       # Check code quality
+    ```
 
 6. **Open** http://localhost:3000 to view the application
 
