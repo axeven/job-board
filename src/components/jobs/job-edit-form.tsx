@@ -28,6 +28,14 @@ export function JobEditForm({ job }: JobEditFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   
+  // Track form values for AI context
+  const [formValues, setFormValues] = useState({
+    title: job.title,
+    company: job.company,
+    location: job.location,
+    jobType: job.job_type
+  })
+  
   // Track form changes
   useEffect(() => {
     const form = document.querySelector('form[data-job-edit-form]')
@@ -61,6 +69,12 @@ export function JobEditForm({ job }: JobEditFormProps) {
       }
     }
   }, [state, router, isSubmitting])
+  
+  // Handle field changes for AI context
+  const handleFieldChange = (field: string, value: string) => {
+    setFormValues(prev => ({ ...prev, [field]: value }))
+    setHasUnsavedChanges(true)
+  }
   
   const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true)
@@ -135,6 +149,7 @@ export function JobEditForm({ job }: JobEditFormProps) {
             helperText="Enter a clear, descriptive job title that candidates will search for"
             maxLength={100}
             defaultValue={job.title}
+            onChange={(e) => handleFieldChange('title', e.target.value)}
           />
           
           {/* Company Name */}
@@ -148,6 +163,7 @@ export function JobEditForm({ job }: JobEditFormProps) {
             helperText="Your company or organization name"
             maxLength={100}
             defaultValue={job.company}
+            onChange={(e) => handleFieldChange('company', e.target.value)}
           />
           
           {/* Location */}
@@ -161,6 +177,7 @@ export function JobEditForm({ job }: JobEditFormProps) {
             helperText="City, state/country, or specify if remote work is available"
             maxLength={100}
             defaultValue={job.location}
+            onChange={(e) => handleFieldChange('location', e.target.value)}
           />
           
           {/* Job Type */}
@@ -168,6 +185,7 @@ export function JobEditForm({ job }: JobEditFormProps) {
             name="job_type"
             error={state?.errors?.job_type}
             defaultValue={job.job_type as JobType}
+            onChange={(value) => handleFieldChange('jobType', value)}
           />
           
           {/* Job Description */}
@@ -179,6 +197,8 @@ export function JobEditForm({ job }: JobEditFormProps) {
             required
             maxLength={5000}
             defaultValue={job.description}
+            enableAIEnhancement={true}
+            jobContext={formValues}
           />
         </div>
         

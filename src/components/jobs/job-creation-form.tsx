@@ -13,10 +13,18 @@ const initialState: ActionState = {}
 export function JobCreationForm() {
   const [state, formAction] = useActionState(createJobAction, initialState)
   const [draftState, draftFormAction] = useActionState(createDraftJobAction, initialState)
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
   const formRef = useRef<HTMLFormElement>(null)
   const [isDraftSubmission, setIsDraftSubmission] = useState(false)
   const { toast } = useToast()
+  
+  // Track form values for AI context
+  const [formValues, setFormValues] = useState({
+    title: '',
+    company: '',
+    location: '',
+    jobType: ''
+  })
   
   // Handle success/error toasts
   useEffect(() => {
@@ -39,6 +47,11 @@ export function JobCreationForm() {
     }
   }, [draftState, isDraftSubmission, toast])
   
+  // Handle field changes for AI context
+  const handleFieldChange = (field: string, value: string) => {
+    setFormValues(prev => ({ ...prev, [field]: value }))
+  }
+
   const handleDraftSave = () => {
     if (formRef.current) {
       setIsDraftSubmission(true)
@@ -64,6 +77,7 @@ export function JobCreationForm() {
           error={currentState?.errors?.title?.[0]}
           helperText="Enter a clear, descriptive job title that candidates will search for"
           maxLength={100}
+          onChange={(e) => handleFieldChange('title', e.target.value)}
         />
         
         {/* Company Name */}
@@ -76,6 +90,7 @@ export function JobCreationForm() {
           error={currentState?.errors?.company?.[0]}
           helperText="Your company or organization name"
           maxLength={100}
+          onChange={(e) => handleFieldChange('company', e.target.value)}
         />
         
         {/* Location */}
@@ -88,12 +103,14 @@ export function JobCreationForm() {
           error={currentState?.errors?.location?.[0]}
           helperText="City, state/country, or specify if remote work is available"
           maxLength={100}
+          onChange={(e) => handleFieldChange('location', e.target.value)}
         />
         
         {/* Job Type */}
         <JobTypeSelect
           name="job_type"
           error={currentState?.errors?.job_type}
+          onChange={(value) => handleFieldChange('jobType', value)}
         />
         
         {/* Job Description */}
@@ -104,6 +121,8 @@ export function JobCreationForm() {
           error={currentState?.errors?.description}
           required
           maxLength={5000}
+          enableAIEnhancement={true}
+          jobContext={formValues}
         />
       </div>
       

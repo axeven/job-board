@@ -7,9 +7,10 @@ interface JobTypeSelectProps {
   error?: string[]
   defaultValue?: string
   className?: string
+  onChange?: (value: string) => void
 }
 
-export function JobTypeSelect({ name, error, defaultValue, className }: JobTypeSelectProps) {
+export function JobTypeSelect({ name, error, defaultValue, className, onChange }: JobTypeSelectProps) {
   const jobTypes = [
     { value: 'Full-Time', label: 'Full-Time', icon: '🏢', description: 'Standard full-time position' },
     { value: 'Part-Time', label: 'Part-Time', icon: '⏰', description: 'Part-time or flexible hours' },
@@ -32,6 +33,7 @@ export function JobTypeSelect({ name, error, defaultValue, className }: JobTypeS
               defaultChecked={defaultValue === type.value}
               className="sr-only peer"
               required
+              onChange={(e) => onChange?.(e.target.value)}
             />
             <div className={clsx(
               'p-4 border rounded-lg transition-all duration-200',

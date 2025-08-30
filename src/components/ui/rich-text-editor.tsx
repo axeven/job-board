@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { clsx } from 'clsx'
+import { AIDescriptionEnhancer } from '@/components/jobs/ai-description-enhancer'
+import { AIErrorBoundary } from '@/components/jobs/ai-error-boundary'
 
 interface RichTextEditorProps {
   name: string
@@ -12,6 +14,13 @@ interface RichTextEditorProps {
   maxLength?: number
   defaultValue?: string
   className?: string
+  enableAIEnhancement?: boolean
+  jobContext?: {
+    title: string
+    company: string
+    location: string
+    jobType: string
+  }
 }
 
 export function RichTextEditor({
@@ -22,7 +31,9 @@ export function RichTextEditor({
   required,
   maxLength = 5000,
   defaultValue = '',
-  className
+  className,
+  enableAIEnhancement = false,
+  jobContext
 }: RichTextEditorProps) {
   const [content, setContent] = useState(defaultValue)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
@@ -107,6 +118,23 @@ export function RichTextEditor({
   
   return (
     <div className={className}>
+      {/* AI Enhancement Section */}
+      {enableAIEnhancement && jobContext && (
+        <div className="mb-4">
+          <AIErrorBoundary>
+            <AIDescriptionEnhancer
+              title={jobContext.title || ''}
+              company={jobContext.company || ''}
+              location={jobContext.location || ''}
+              jobType={jobContext.jobType || ''}
+              currentDescription={content}
+              onDescriptionChange={setContent}
+              disabled={isPreviewMode}
+            />
+          </AIErrorBoundary>
+        </div>
+      )}
+      
       <div className="flex justify-between items-center mb-2">
         <label htmlFor={name} className="block text-sm font-medium text-gray-700">
           {label} {required && <span className="text-red-500">*</span>}
