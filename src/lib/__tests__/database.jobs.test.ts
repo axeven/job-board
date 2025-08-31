@@ -22,6 +22,7 @@ type MockQueryChain = {
   select: jest.MockedFunction<() => MockQueryChain>
   order: jest.MockedFunction<() => MockQueryChain>
   eq: jest.MockedFunction<() => MockQueryChain>
+  is: jest.MockedFunction<() => MockQueryChain>
   ilike: jest.MockedFunction<() => MockQueryChain>
   or: jest.MockedFunction<() => MockQueryChain>
   single: jest.MockedFunction<() => Promise<MockQueryResult>>
@@ -38,6 +39,7 @@ const createMockQuery = (mockData: typeof mockJob[] = []): MockQueryChain => {
     select: jest.fn(() => mockQuery),
     order: jest.fn(() => mockQuery),
     eq: jest.fn(() => mockQuery),
+    is: jest.fn(() => mockQuery),
     ilike: jest.fn(() => mockQuery),
     or: jest.fn(() => mockQuery),
     single: jest.fn().mockResolvedValue({ data: mockJob, error: null }),
