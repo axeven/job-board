@@ -39,7 +39,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts([])
   }, [])
 
-  // Convert toasts to ToastProps for the container
   const toastProps: ToastProps[] = toasts.map(toast => ({
     ...toast,
     onClose: removeToast,

@@ -81,7 +81,7 @@ export const dashboardServer = {
   },
   
   // Get user profile information
-  async getUserProfile(_userId: string): Promise<UserProfile | null> {
+  async getUserProfile(): Promise<UserProfile | null> {
     const supabase = await createServerClient()
     
     try {
@@ -110,7 +110,7 @@ export const dashboardServer = {
   },
   
   // Get recent activity (placeholder for future implementation)
-  async getRecentActivity(_userId: string) {
+  async getRecentActivity() {
     // This is a placeholder for future activity tracking
     return []
   }

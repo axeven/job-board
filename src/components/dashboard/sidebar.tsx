@@ -7,6 +7,7 @@ import { clsx } from 'clsx'
 const navigation = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
   { name: 'My Jobs', href: '/dashboard/jobs', icon: BriefcaseIcon },
+  { name: 'My Applications', href: '/dashboard/applications', icon: DocumentIcon },
   { name: 'Deleted Jobs', href: '/dashboard/jobs/deleted', icon: TrashIcon },
   { name: 'Post New Job', href: '/post-job', icon: PlusIcon },
   { name: 'Profile', href: '/dashboard/profile', icon: UserIcon },
@@ -73,6 +74,14 @@ function UserIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  )
+}
+
+function DocumentIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
     </svg>
   )
 }

@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   // Fetch real user data and stats
   const [userStats, userProfile, recentJobsResult] = await Promise.all([
     dashboardServer.getUserJobStats(user.id),
-    dashboardServer.getUserProfile(user.id),
+    dashboardServer.getUserProfile(),
     jobsServer.getByUser(user.id)
   ])
   
