@@ -33,6 +33,13 @@ export async function testSupabaseConnection() {
   }
 }
 
+export async function cleanupTestData() {
+  // Mock cleanup function for tests
+  // In a real implementation, this would clean up test data from the database
+  // For now, we'll just return a resolved promise since the tests are mocked
+  return Promise.resolve()
+}
+
 // Test function that can be run from command line
 if (typeof window === 'undefined' && require.main === module) {
   testSupabaseConnection()
