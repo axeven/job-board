@@ -52,14 +52,14 @@ describe('UI Components', () => {
       
       const button = screen.getByRole('button', { name: 'Click me' })
       expect(button).toBeInTheDocument()
-      expect(button).toHaveClass('bg-blue-600') // primary variant
+      expect(button).toHaveClass('bg-primary-600') // primary variant
     })
 
     it('should apply variant classes correctly', () => {
       render(<Button variant="outline">Outline Button</Button>)
       
       const button = screen.getByRole('button', { name: 'Outline Button' })
-      expect(button).toHaveClass('border-gray-300', 'bg-white', 'text-gray-700')
+      expect(button).toHaveClass('border-neutral-300', 'bg-white', 'text-neutral-700')
     })
 
     it('should apply size classes correctly', () => {
