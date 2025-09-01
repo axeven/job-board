@@ -39,7 +39,15 @@ export const userProfilesClient = {
       return result
     } catch (error) {
       console.error('Profile fetch exception:', error)
-      return { data: null, error: error as any }
+      return { 
+        data: null, 
+        error: { 
+          message: error instanceof Error ? error.message : 'Unknown error',
+          code: '',
+          details: null,
+          hint: null
+        }
+      }
     }
   },
 

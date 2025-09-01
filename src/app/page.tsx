@@ -29,7 +29,7 @@ export default function Home() {
             Browse Jobs
           </Link>
           <Link
-            href="/post-job"
+            href="/auth/signup?userType=employer"
             className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Post a Job

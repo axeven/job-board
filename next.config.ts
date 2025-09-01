@@ -41,21 +41,7 @@ const nextConfig: NextConfig = {
       }
     }
 
-    // Add bundle analyzer if ANALYZE env variable is set
-    if (process.env.ANALYZE === 'true') {
-      // Dynamic import to avoid require() in TypeScript
-      import('@next/bundle-analyzer').then((analyzer) => {
-        const { BundleAnalyzerPlugin } = analyzer.default()
-        config.plugins.push(
-          new BundleAnalyzerPlugin({
-            analyzerMode: 'static',
-            openAnalyzer: true,
-          })
-        )
-      }).catch(() => {
-        console.warn('Bundle analyzer not available')
-      })
-    }
+    // Bundle analyzer removed - install @next/bundle-analyzer if needed
 
     return config
   },

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 import { authClient } from '@/lib/auth/client'
@@ -19,14 +20,27 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const searchParams = useSearchParams()
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors }
   } = useForm<SignupFormData>({
-    resolver: zodResolver(signupSchema)
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      userType: (searchParams.get('userType') as 'employer' | 'job_seeker') || 'job_seeker'
+    }
   })
+
+  // Set default user type based on URL parameter
+  useEffect(() => {
+    const userType = searchParams.get('userType')
+    if (userType === 'employer' || userType === 'job_seeker') {
+      setValue('userType', userType)
+    }
+  }, [searchParams, setValue])
 
   const onSubmit = async (data: SignupFormData) => {
     try {

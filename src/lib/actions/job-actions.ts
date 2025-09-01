@@ -38,11 +38,18 @@ async function createJobWithStatus(
   formData: FormData,
   status: 'active' | 'draft'
 ): Promise<ActionState> {
-  // Require authentication
-  const user = await authServer.requireAuth({
-    redirectTo: '/auth/login',
-    redirectWithReturn: true
-  })
+  // Require employer authentication
+  let user
+  try {
+    const result = await authServer.requireEmployer()
+    user = result.user
+  } catch {
+    // Handle redirect or return error state
+    return {
+      message: 'Only employers can post jobs. Please create an employer account to post job listings.',
+      error: 'Employer access required'
+    }
+  }
   
   // Validate form data
   const validatedFields = jobSchema.safeParse({
@@ -113,11 +120,17 @@ export async function updateJobAction(
   prevState: ActionState | undefined,
   formData: FormData
 ): Promise<ActionState> {
-  // Require authentication
-  const user = await authServer.requireAuth({
-    redirectTo: '/auth/login',
-    redirectWithReturn: true
-  })
+  // Require employer authentication
+  let user
+  try {
+    const result = await authServer.requireEmployer()
+    user = result.user
+  } catch {
+    return {
+      message: 'Only employers can manage jobs. Please create an employer account.',
+      error: 'Employer access required'
+    }
+  }
   
   // Validate job ownership
   const isOwner = await jobsServer.validateOwnership(jobId, user.id)

@@ -6,7 +6,7 @@ import { AuthButton } from '@/components/auth/auth-button'
 import { Button } from '@/components/ui/button'
 
 export function Navbar() {
-  const { user, loading } = useAuth()
+  const { user, loading, isEmployer } = useAuth()
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
@@ -27,12 +27,14 @@ export function Navbar() {
               
               {user && (
                 <>
-                  <Link
-                    href="/post-job"
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-                  >
-                    Post a Job
-                  </Link>
+                  {isEmployer && (
+                    <Link
+                      href="/post-job"
+                      className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                    >
+                      Post a Job
+                    </Link>
+                  )}
                   <Link
                     href="/dashboard"
                     className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
@@ -48,7 +50,7 @@ export function Navbar() {
             {!loading && !user && (
               <Button
                 as={Link}
-                href="/post-job"
+                href="/auth/signup"
                 variant="primary"
                 size="sm"
                 className="hidden sm:inline-flex"
@@ -80,7 +82,7 @@ export function Navbar() {
 }
 
 function MobileMenu() {
-  const { user } = useAuth()
+  const { user, isEmployer } = useAuth()
 
   return (
     <div className="sm:hidden border-t border-gray-200">
@@ -94,12 +96,14 @@ function MobileMenu() {
         
         {user && (
           <>
-            <Link
-              href="/post-job"
-              className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
-            >
-              Post a Job
-            </Link>
+            {isEmployer && (
+              <Link
+                href="/post-job"
+                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+              >
+                Post a Job
+              </Link>
+            )}
             <Link
               href="/dashboard"
               className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
