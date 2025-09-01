@@ -59,13 +59,7 @@ export const applicationsClient = {
     const client = supabase()
     let query = client
       .from('job_applications')
-      .select(`
-        *,
-        user_profiles (
-          full_name,
-          user_type
-        )
-      `)
+      .select('*')
       .eq('job_id', jobId)
       .order('applied_at', { ascending: false })
 
@@ -73,6 +67,8 @@ export const applicationsClient = {
       query = query.in('status', filters.status)
     }
 
+    // Note: This client function returns the query builder
+    // Profile joining would need to be handled separately
     return query
   },
 
@@ -155,15 +151,10 @@ export const applicationsServer = {
       return { data: null, error: { message: 'Unauthorized' } }
     }
 
+    // Get applications first
     let query = supabase
       .from('job_applications')
-      .select(`
-        *,
-        user_profiles (
-          full_name,
-          user_type
-        )
-      `)
+      .select('*')
       .eq('job_id', jobId)
       .order('applied_at', { ascending: false })
 
@@ -171,7 +162,31 @@ export const applicationsServer = {
       query = query.in('status', filters.status)
     }
 
-    return query
+    const { data: applications, error } = await query
+
+    if (error || !applications) {
+      return { data: null, error }
+    }
+
+    // Get user profiles separately
+    if (applications.length === 0) {
+      return { data: applications.map(app => ({ ...app, user_profiles: null })), error: null }
+    }
+
+    const userIds = applications.map(app => app.applicant_id)
+    const { data: profiles } = await supabase
+      .from('user_profiles')
+      .select('user_id, full_name, user_type')
+      .in('user_id', userIds)
+
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || [])
+    
+    const applicationsWithProfiles = applications.map(app => ({
+      ...app,
+      user_profiles: profileMap.get(app.applicant_id) || null
+    }))
+
+    return { data: applicationsWithProfiles, error: null }
   },
 
   // Update application status
@@ -215,4 +230,52 @@ export const applicationsServer = {
 
     return { hasApplied: !!data && !error, error }
   }
+}
+
+// Helper functions for specific use cases
+export async function getJobApplicationsServer(jobId: string) {
+  const supabase = await createClient()
+  
+  // First get the applications
+  const { data: applications, error } = await supabase
+    .from('job_applications')
+    .select('*')
+    .eq('job_id', jobId)
+    .order('applied_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching job applications:', error)
+    return []
+  }
+
+  if (!applications || applications.length === 0) {
+    return []
+  }
+
+  // Get the user IDs from applications
+  const userIds = applications.map(app => app.applicant_id)
+
+  // Fetch user profiles for these users
+  const { data: profiles, error: profileError } = await supabase
+    .from('user_profiles')
+    .select('user_id, full_name, user_type')
+    .in('user_id', userIds)
+
+  if (profileError) {
+    console.error('Error fetching user profiles:', profileError)
+    // Return applications without profile data
+    return applications.map(app => ({
+      ...app,
+      user_profiles: null
+    }))
+  }
+
+  // Create a map of user profiles by user_id
+  const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || [])
+
+  // Combine applications with their profiles
+  return applications.map(app => ({
+    ...app,
+    user_profiles: profileMap.get(app.applicant_id) || null
+  }))
 }
