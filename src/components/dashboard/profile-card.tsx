@@ -151,7 +151,7 @@ export function ProfileCard({ user, profile }: ProfileCardProps) {
         </div>
 
         {/* Profile Data Section */}
-        {profile?.profile_data && Object.keys(profile.profile_data as any).length > 0 && (
+        {profile?.profile_data && Object.keys(profile.profile_data as Record<string, unknown>).length > 0 && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Additional Profile Information

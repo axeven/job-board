@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Job } from '@/types/database'
 import { useAuth } from '@/lib/auth/context'
 import { applicationsClient } from '@/lib/database/applications'
-import { JobApplicationModal } from './job-application-modal'
+import { ApplicationFormModal } from '@/components/applications/application-form-modal'
 import { Button } from '@/components/ui/button'
 
 interface JobDetailActionsProps {
@@ -24,13 +24,8 @@ function ApplyButton({ job }: { job: Job }) {
       
       setCheckingApplication(true)
       try {
-        const { data: applications } = await applicationsClient.getByUser(user.id, {
-          job_id: job.id
-        })
-        
-        if (applications && applications.length > 0) {
-          setHasApplied(true)
-        }
+        const { hasApplied: userHasApplied } = await applicationsClient.hasApplied(job.id, user.id)
+        setHasApplied(userHasApplied)
       } catch (error) {
         console.error('Error checking application status:', error)
       } finally {
@@ -94,11 +89,15 @@ function ApplyButton({ job }: { job: Job }) {
         {getButtonText()}
       </Button>
 
-      <JobApplicationModal
-        job={job}
+      <ApplicationFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleApplySuccess}
+        jobId={job.id}
+        jobTitle={job.title}
+        companyName={job.company}
+        location={job.location}
+        jobType={job.job_type}
       />
     </>
   )
