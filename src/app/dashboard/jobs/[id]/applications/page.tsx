@@ -1,15 +1,27 @@
-import { redirect } from 'next/navigation'
+import { redirect, notFound } from 'next/navigation'
 import { getJobApplicationsServer } from '@/lib/database/applications'
 import { jobsServer } from '@/lib/database/jobs'
 import { authServer } from '@/lib/auth/server'
-import { EmployerApplicationsList } from '@/components/employer/employer-applications-list'
+import { ApplicationsManagementList } from '@/components/applications/applications-management-list'
 
 interface PageProps {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ status?: string; sort?: string }>
 }
 
-export default async function JobApplicationsPage({ params }: PageProps) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { data: job } = await jobsServer.getJobById(id)
+
+  return {
+    title: `Applications - ${job?.title || 'Job'} | Dashboard`,
+    description: `Manage applications for ${job?.title || 'your job'}`
+  }
+}
+
+export default async function JobApplicationsPage({ params, searchParams }: PageProps) {
   const { id: jobId } = await params
+  const searchParamsResolved = await searchParams
   const user = await authServer.getUser()
 
   if (!user) {
@@ -18,7 +30,7 @@ export default async function JobApplicationsPage({ params }: PageProps) {
 
   const { data: job, error: jobError } = await jobsServer.getJobById(jobId)
   if (jobError || !job) {
-    redirect('/dashboard/jobs')
+    notFound()
   }
 
   // Ensure user owns this job
@@ -28,36 +40,28 @@ export default async function JobApplicationsPage({ params }: PageProps) {
 
   const applications = await getJobApplicationsServer(jobId)
 
+  // Parse search params for filters
+  const statusFilter = searchParamsResolved.status?.split(',') || []
+  const sortBy = searchParamsResolved.sort || 'newest'
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <span>Dashboard</span>
-          <span>/</span>
-          <span>Jobs</span>
-          <span>/</span>
-          <span>{job.title}</span>
-          <span>/</span>
-          <span>Applications</span>
-        </div>
-        <h1 className="text-3xl font-bold">Applications</h1>
-        <div className="flex items-center gap-4 mt-2">
-          <div>
-            <h2 className="text-xl font-semibold">{job.title}</h2>
-            <p className="text-muted-foreground">{job.company} • {job.location}</p>
-          </div>
-          <div className="ml-auto">
-            <div className="text-right">
-              <p className="text-2xl font-bold">{applications.length}</p>
-              <p className="text-sm text-muted-foreground">Total Applications</p>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{job.title}</h1>
+          <p className="text-muted-foreground">
+            {job.company} • {applications?.length || 0} applications
+          </p>
         </div>
       </div>
 
-      <EmployerApplicationsList 
-        jobTitle={job.title}
-        applications={applications} 
+      <ApplicationsManagementList
+        jobId={job.id}
+        applications={applications || []}
+        initialFilters={{
+          status: statusFilter,
+          sort: sortBy
+        }}
       />
     </div>
   )
