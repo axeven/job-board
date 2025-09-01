@@ -118,7 +118,7 @@ export function ApplicationFormModal({
 
       toast.success(
         'Application Submitted!', 
-        `Your application for ${jobTitle} at ${companyName} has been submitted successfully.`
+        'Your application has been sent successfully.'
       )
 
       resetForm()

@@ -59,7 +59,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       <div
         ref={ref}
         className={clsx(
-          'relative pointer-events-auto w-full max-w-sm overflow-hidden rounded-base bg-white shadow-lg ring-1 ring-black ring-opacity-5',
+          'relative pointer-events-auto w-full max-w-md overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5',
           'transform transition-all duration-300 ease-in-out',
           'hover:shadow-xl'
         )}
@@ -82,12 +82,12 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
               </div>
             </div>
             
-            <div className="ml-3 w-0 flex-1">
-              <p className="text-sm font-medium text-neutral-900">
+            <div className="ml-3 flex-1 min-w-0">
+              <p className="text-sm font-semibold text-neutral-900 leading-tight">
                 {title}
               </p>
               {description && (
-                <p className="mt-1 text-sm text-neutral-500">
+                <p className="mt-1 text-sm text-neutral-600 leading-relaxed">
                   {description}
                 </p>
               )}

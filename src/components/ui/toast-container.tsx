@@ -20,14 +20,14 @@ export function ToastContainer({
   return createPortal(
     <div
       className={clsx(
-        'fixed z-50 flex flex-col gap-2 p-4 pointer-events-none',
+        'fixed z-50 flex flex-col gap-3 p-6 pointer-events-none',
         {
-          'top-4 right-4': position === 'top-right',
-          'top-4 left-4': position === 'top-left',
-          'bottom-4 right-4': position === 'bottom-right',
-          'bottom-4 left-4': position === 'bottom-left',
-          'top-4 left-1/2 transform -translate-x-1/2': position === 'top-center',
-          'bottom-4 left-1/2 transform -translate-x-1/2': position === 'bottom-center',
+          'top-6 right-6': position === 'top-right',
+          'top-6 left-6': position === 'top-left',
+          'bottom-6 right-6': position === 'bottom-right',
+          'bottom-6 left-6': position === 'bottom-left',
+          'top-6 left-1/2 transform -translate-x-1/2': position === 'top-center',
+          'bottom-6 left-1/2 transform -translate-x-1/2': position === 'bottom-center',
         }
       )}
       role="region"
