@@ -6,11 +6,41 @@ import type { UserProfileInsert, UserProfileUpdate } from '@/types/database'
 export const userProfilesClient = {
   async getByUserId(userId: string) {
     const client = supabase()
-    return client
-      .from('user_profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
+    try {
+      // Check current auth state before making the query
+      const { data: { user }, error: authError } = await client.auth.getUser()
+      console.log('Auth state during profile fetch:', {
+        hasUser: !!user,
+        userId: user?.id,
+        requestedUserId: userId,
+        userMatch: user?.id === userId,
+        authError: authError?.message
+      })
+      
+      const result = await client
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle() // Use maybeSingle to handle no rows gracefully
+      
+      // Log detailed error information for debugging
+      if (result.error) {
+        console.error('Profile fetch error details:', {
+          error: result.error,
+          code: result.error.code,
+          message: result.error.message,
+          details: result.error.details,
+          hint: result.error.hint,
+          userId,
+          authUser: user?.id
+        })
+      }
+      
+      return result
+    } catch (error) {
+      console.error('Profile fetch exception:', error)
+      return { data: null, error: error as any }
+    }
   },
 
   async create(profile: UserProfileInsert) {
