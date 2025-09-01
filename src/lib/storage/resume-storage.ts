@@ -75,6 +75,24 @@ export async function uploadResumeFile(
   }
 }
 
+// Client-side: Get signed download URL
+export async function getResumeDownloadUrlClient(filePath: string): Promise<{ url?: string, error?: string }> {
+  try {
+    const client = supabase()
+    
+    const { data, error } = await client.storage
+      .from(BUCKET_NAME)
+      .createSignedUrl(filePath, 3600) // 1 hour expiry
+
+    if (error) throw error
+
+    return { url: data.signedUrl }
+  } catch (error) {
+    console.error('Error getting download URL:', error)
+    return { error: 'Failed to get resume URL' }
+  }
+}
+
 // Server-side: Get signed download URL
 export async function getResumeDownloadUrl(filePath: string): Promise<{ url?: string, error?: string }> {
   try {

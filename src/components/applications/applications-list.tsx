@@ -1,10 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { FileText } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { FileText, Download } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-// Note: Resume download will be handled by server actions in Phase 2
+import { getResumeDownloadUrlClient } from '@/lib/storage/resume-storage'
+import { useToast } from '@/lib/toast-context'
 import type { JobApplicationWithJob } from '@/types/database'
 
 interface ApplicationsListProps {
@@ -46,7 +49,7 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
                 {application.jobs.job_type}
               </Badge>
               {application.resume_file_path && (
-                <ResumeDownloadLink />
+                <ResumeDownloadLink filePath={application.resume_file_path} />
               )}
             </div>
           </div>
@@ -56,13 +59,60 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
   )
 }
 
-// Resume Download Component - Simplified for Phase 1
-function ResumeDownloadLink() {
+// Resume Download Component
+function ResumeDownloadLink({ filePath }: { filePath: string }) {
+  const [isDownloading, setIsDownloading] = useState(false)
+  const { toast } = useToast()
+
+  const handleDownload = async () => {
+    setIsDownloading(true)
+    try {
+      const { url, error } = await getResumeDownloadUrlClient(filePath)
+      
+      if (error) {
+        throw new Error(error)
+      }
+      
+      if (url) {
+        // Open in new tab/window for download
+        window.open(url, '_blank')
+      } else {
+        throw new Error('No download URL received')
+      }
+    } catch (error) {
+      console.error('Failed to download resume:', error)
+      toast.error(
+        'Download Failed', 
+        'Unable to download resume. Please try again.'
+      )
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+
   return (
-    <div className="inline-flex items-center gap-1 text-blue-600">
-      <FileText className="h-3 w-3" />
-      Resume Available
-    </div>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleDownload}
+      disabled={isDownloading}
+      className="gap-1 text-xs h-7 px-2"
+      title="Download your uploaded resume"
+    >
+      {isDownloading ? (
+        <>
+          <div className="animate-spin h-3 w-3 border border-current border-t-transparent rounded-full" />
+          Downloading...
+        </>
+      ) : (
+        <>
+          <FileText className="h-3 w-3" />
+          <Download className="h-3 w-3" />
+          Resume
+        </>
+      )}
+    </Button>
   )
 }
 
