@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FileText, Download } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
 import { getResumeDownloadUrlClient } from '@/lib/storage/resume-storage'
 import { useToast } from '@/lib/toast-context'
+import { ApplicationTimeline } from './application-timeline'
+import { generateTimeline } from '@/lib/timeline/timeline-generator'
 import type { JobApplicationWithJob } from '@/types/database'
+import type { ApplicationStatus, TimelineConfig } from '@/types/timeline'
 
 interface ApplicationsListProps {
   applications: JobApplicationWithJob[]
@@ -27,35 +28,54 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {applications.map((application) => (
-        <Card key={application.id} className="p-6">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <h3 className="font-semibold text-lg">
-                {application.jobs.title}
-              </h3>
-              <p className="text-muted-foreground">
-                {application.jobs.company} • {application.jobs.location}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Applied {formatDistanceToNow(new Date(application.applied_at || new Date()), { addSuffix: true })}
-              </p>
-            </div>
-            
-            <div className="flex flex-col items-end gap-2">
-              <ApplicationStatusBadge status={application.status} />
-              <Badge variant="default">
-                {application.jobs.job_type}
-              </Badge>
-              {application.resume_file_path && (
-                <ResumeDownloadLink filePath={application.resume_file_path} />
-              )}
-            </div>
-          </div>
-        </Card>
-      ))}
+    <div className="space-y-6">
+      {applications.map((application) => {
+        const timeline = generateTimeline(
+          application.status as ApplicationStatus,
+          application.applied_at || new Date().toISOString(),
+          application.updated_at || application.applied_at || new Date().toISOString()
+        )
+
+        return (
+          <ApplicationCard 
+            key={application.id}
+            application={application}
+            timeline={timeline}
+          />
+        )
+      })}
     </div>
+  )
+}
+
+// Enhanced Application Card Component with Timeline
+function ApplicationCard({ 
+  application, 
+  timeline 
+}: { 
+  application: JobApplicationWithJob
+  timeline: TimelineConfig
+}) {
+  const additionalActions = (
+    <>
+      <ApplicationStatusBadge status={application.status} />
+      <Badge variant="primary">
+        {application.jobs.job_type}
+      </Badge>
+      {application.resume_file_path && (
+        <ResumeDownloadLink filePath={application.resume_file_path} />
+      )}
+    </>
+  )
+
+  return (
+    <ApplicationTimeline
+      jobTitle={application.jobs.title}
+      companyName={application.jobs.company}
+      location={application.jobs.location}
+      timeline={timeline}
+      additionalActions={additionalActions}
+    />
   )
 }
 
