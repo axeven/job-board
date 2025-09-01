@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
   },
 
   // Bundle optimization
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+  webpack: (config, { dev, isServer }) => {
     // Optimize bundle splitting
     if (!dev && !isServer) {
       config.optimization.splitChunks.cacheGroups = {
@@ -43,13 +43,18 @@ const nextConfig: NextConfig = {
 
     // Add bundle analyzer if ANALYZE env variable is set
     if (process.env.ANALYZE === 'true') {
-      const { BundleAnalyzerPlugin } = require('@next/bundle-analyzer')()
-      config.plugins.push(
-        new BundleAnalyzerPlugin({
-          analyzerMode: 'static',
-          openAnalyzer: true,
-        })
-      )
+      // Dynamic import to avoid require() in TypeScript
+      import('@next/bundle-analyzer').then((analyzer) => {
+        const { BundleAnalyzerPlugin } = analyzer.default()
+        config.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            openAnalyzer: true,
+          })
+        )
+      }).catch(() => {
+        console.warn('Bundle analyzer not available')
+      })
     }
 
     return config
