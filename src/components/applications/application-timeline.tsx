@@ -5,9 +5,12 @@ import { ChevronDown, ChevronUp, Check, Clock, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import type { TimelineConfig, TimelineStep, TimelineState } from '@/types/timeline'
+import Link from 'next/link'
+import type { TimelineConfig, TimelineStep, TimelineState, ApplicationStatus } from '@/types/timeline'
+import { getFlowProgress } from '@/lib/timeline/status-mapping'
 
 interface ApplicationTimelineProps {
+  jobId: string
   jobTitle: string
   companyName: string
   location: string
@@ -17,6 +20,7 @@ interface ApplicationTimelineProps {
 }
 
 export function ApplicationTimeline({ 
+  jobId,
   jobTitle, 
   companyName, 
   location, 
@@ -43,6 +47,7 @@ export function ApplicationTimeline({
     <Card className={cn("overflow-hidden", className)}>
       {/* Header */}
       <TimelineHeader 
+        jobId={jobId}
         jobTitle={jobTitle}
         companyName={companyName}
         location={location}
@@ -52,12 +57,12 @@ export function ApplicationTimeline({
         additionalActions={additionalActions}
       />
 
-      {/* Timeline Steps - Collapsible */}
+      {/* Timeline Steps - Collapsible on mobile, hidden on desktop when compact is shown */}
       <div className={cn(
-        "transition-all duration-300 ease-in-out overflow-hidden",
+        "md:hidden transition-all duration-300 ease-in-out overflow-hidden",
         state.isExpanded 
           ? "max-h-96 opacity-100" 
-          : "max-h-0 opacity-0 md:max-h-24 md:opacity-100"
+          : "max-h-0 opacity-0"
       )}>
         <div className="p-6 pt-0">
           <TimelineSteps steps={timeline.steps} />
@@ -75,6 +80,7 @@ export function ApplicationTimeline({
 }
 
 function TimelineHeader({ 
+  jobId,
   jobTitle, 
   companyName, 
   location, 
@@ -83,6 +89,7 @@ function TimelineHeader({
   onToggle,
   additionalActions
 }: {
+  jobId: string
   jobTitle: string
   companyName: string
   location: string
@@ -97,15 +104,25 @@ function TimelineHeader({
     <div className="p-6 pb-4">
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <h3 className="font-semibold text-lg">{jobTitle}</h3>
+          <Link 
+            href={`/jobs/${jobId}`}
+            className="font-semibold text-lg text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+          >
+            {jobTitle}
+          </Link>
           <p className="text-muted-foreground text-sm">
             {companyName} • {location}
           </p>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Status:</span>
-            <span className="font-medium">
-              {currentStep?.label || timeline.currentStatus}
-            </span>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Status:</span>
+              <span className="font-medium">
+                {currentStep?.label || timeline.currentStatus}
+              </span>
+            </div>
+            
+            {/* Progress Indicator */}
+            <TimelineProgress status={timeline.currentStatus} />
           </div>
         </div>
         
@@ -164,30 +181,42 @@ function TimelineSteps({ steps }: { steps: TimelineStep[] }) {
 
 function CompactTimelineSteps({ steps }: { steps: TimelineStep[] }) {
   return (
-    <div className="flex items-center justify-between">
-      {steps.map((step, index) => (
-        <div key={step.id} className="flex items-center flex-1">
-          <TimelineStepIcon step={step} size="sm" />
-          {index < steps.length - 1 && (
-            <TimelineConnector 
-              fromStep={step} 
-              toStep={steps[index + 1]} 
-              compact
-            />
-          )}
-        </div>
-      ))}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        {steps.map((step, index) => (
+          <div key={step.id} className="flex items-center flex-1">
+            <TimelineStepIcon step={step} size="sm" />
+            {index < steps.length - 1 && (
+              <TimelineConnector 
+                fromStep={step} 
+                toStep={steps[index + 1]} 
+                compact
+              />
+            )}
+          </div>
+        ))}
+      </div>
+      
+      {/* Step labels below the timeline */}
+      <div className="flex justify-between">
+        {steps.map((step) => (
+          <div key={`${step.id}-label`} className="flex-1 text-center px-1">
+            <div className="text-xs font-medium text-gray-900 leading-tight">{step.label}</div>
+            <div className="text-xs text-gray-500 mt-0.5 leading-tight">{step.description}</div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
 function TimelineStepDesktop({ step }: { step: TimelineStep }) {
   return (
-    <div className="flex items-start gap-3 md:flex-col md:items-center md:text-center">
+    <div className="flex items-start gap-3 md:flex-col md:items-center md:text-center max-w-24">
       <TimelineStepIcon step={step} />
       <div className="space-y-1 md:mt-2">
-        <h4 className="font-medium text-sm">{step.label}</h4>
-        <p className="text-xs text-muted-foreground">
+        <h4 className="font-medium text-sm leading-tight">{step.label}</h4>
+        <p className="text-xs text-muted-foreground leading-tight">
           {step.description}
         </p>
         {step.timestamp && (
@@ -312,6 +341,40 @@ function TimelineFooter({ timeline }: { timeline: TimelineConfig }) {
             {timeline.nextAction}
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function TimelineProgress({ status }: { status: string }) {
+  const progress = getFlowProgress(status as ApplicationStatus)
+  
+  const getProgressColor = () => {
+    if (status === 'rejected') return 'bg-red-500'
+    if (status === 'accepted') return 'bg-emerald-500'
+    return 'bg-blue-500'
+  }
+  
+  const getProgressBgColor = () => {
+    if (status === 'rejected') return 'bg-red-100'
+    if (status === 'accepted') return 'bg-emerald-100'
+    return 'bg-blue-100'
+  }
+  
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Progress</span>
+        <span>{progress.completedSteps}/{progress.totalSteps} steps</span>
+      </div>
+      <div className={cn("w-full h-1.5 rounded-full", getProgressBgColor())}>
+        <div 
+          className={cn(
+            "h-full rounded-full transition-all duration-500 ease-out",
+            getProgressColor()
+          )}
+          style={{ width: `${progress.percentage}%` }}
+        />
       </div>
     </div>
   )

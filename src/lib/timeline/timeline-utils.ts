@@ -18,7 +18,7 @@ export function validateStatusProgression(
 
 export function formatTimelineTimestamp(
   date: string | Date,
-  format: 'relative' | 'absolute' | 'both' = 'relative'
+  format: 'relative' | 'absolute' | 'both' | 'smart' = 'relative'
 ): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date
   
@@ -33,6 +33,16 @@ export function formatTimelineTimestamp(
       return formatDate(dateObj, 'MMM d, yyyy')
     case 'both':
       return `${formatDistanceToNow(dateObj, { addSuffix: true })} (${formatDate(dateObj, 'MMM d')})`
+    case 'smart':
+      // Smart formatting based on how recent the date is
+      const daysDiff = Math.abs(new Date().getTime() - dateObj.getTime()) / (1000 * 60 * 60 * 24)
+      if (daysDiff < 1) {
+        return formatDistanceToNow(dateObj, { addSuffix: true })
+      } else if (daysDiff < 7) {
+        return `${Math.floor(daysDiff)} day${Math.floor(daysDiff) === 1 ? '' : 's'} ago`
+      } else {
+        return formatDate(dateObj, 'MMM d')
+      }
     default:
       return formatDistanceToNow(dateObj, { addSuffix: true })
   }
@@ -171,10 +181,12 @@ export function getNextExpectedStep(
 }
 
 export function estimateTimeToNextStep(
-  currentStatus: ApplicationStatus
+  currentStatus: ApplicationStatus,
+  appliedAt?: string
 ): {
   estimatedDays: number
   message: string
+  isOverdue?: boolean
 } {
   const estimations: Record<ApplicationStatus, { days: number; message: string }> = {
     pending: {
@@ -200,8 +212,128 @@ export function estimateTimeToNextStep(
   }
   
   const estimation = estimations[currentStatus]
+  let isOverdue = false
+  
+  // Check if timeline is overdue based on applied date
+  if (appliedAt && estimation.days > 0) {
+    const daysSinceApplied = Math.floor(
+      (new Date().getTime() - new Date(appliedAt).getTime()) / (1000 * 60 * 60 * 24)
+    )
+    isOverdue = daysSinceApplied > estimation.days
+  }
+  
   return {
     estimatedDays: estimation.days,
-    message: estimation.message
+    message: estimation.message,
+    isOverdue
+  }
+}
+
+// Get user-friendly status messages with context
+export function getStatusMessage(
+  status: ApplicationStatus,
+  appliedAt: string,
+  updatedAt: string
+): {
+  primary: string
+  secondary: string
+  tone: 'positive' | 'neutral' | 'negative' | 'warning'
+} {
+  const daysSinceApplied = Math.floor(
+    (new Date().getTime() - new Date(appliedAt).getTime()) / (1000 * 60 * 60 * 24)
+  )
+  
+  const daysSinceUpdate = Math.floor(
+    (new Date().getTime() - new Date(updatedAt).getTime()) / (1000 * 60 * 60 * 24)
+  )
+
+  switch (status) {
+    case 'pending':
+      return {
+        primary: "Application Submitted",
+        secondary: `Applied ${daysSinceApplied} day${daysSinceApplied === 1 ? '' : 's'} ago. Review typically begins within 2-3 business days.`,
+        tone: daysSinceApplied > 5 ? 'warning' : 'neutral'
+      }
+    
+    case 'reviewing':
+      return {
+        primary: "Under Review",
+        secondary: `Your application is being actively reviewed. Updates typically come within 3-5 business days.`,
+        tone: daysSinceUpdate > 7 ? 'warning' : 'positive'
+      }
+    
+    case 'shortlisted':
+      return {
+        primary: "Shortlisted!",
+        secondary: "Great news! You've been selected for the next round. Expect to hear about next steps soon.",
+        tone: 'positive'
+      }
+    
+    case 'accepted':
+      return {
+        primary: "Congratulations!",
+        secondary: "Your application has been accepted. Check your email for offer details and next steps.",
+        tone: 'positive'
+      }
+    
+    case 'rejected':
+      return {
+        primary: "Application Unsuccessful",
+        secondary: "Thank you for your interest. We encourage you to apply for other positions that match your skills.",
+        tone: 'negative'
+      }
+    
+    default:
+      return {
+        primary: "Application Status",
+        secondary: "Your application is in the system.",
+        tone: 'neutral'
+      }
+  }
+}
+
+// Get helpful action suggestions based on status
+export function getActionSuggestions(
+  status: ApplicationStatus,
+  daysSinceUpdate: number = 0
+): string[] {
+  switch (status) {
+    case 'pending':
+      const suggestions = ["Be patient - initial review takes time"]
+      if (daysSinceUpdate > 7) {
+        suggestions.push("Consider following up with the employer")
+      }
+      return suggestions
+    
+    case 'reviewing':
+      return [
+        "Keep checking your email for updates",
+        "Prepare for potential next steps",
+        daysSinceUpdate > 10 ? "Consider a polite follow-up" : "Stay patient - review is in progress"
+      ].filter(Boolean)
+    
+    case 'shortlisted':
+      return [
+        "Check your email regularly",
+        "Prepare for interviews or assessments",
+        "Research the company further"
+      ]
+    
+    case 'accepted':
+      return [
+        "Check your email for offer details",
+        "Prepare for contract negotiation",
+        "Celebrate this achievement!"
+      ]
+    
+    case 'rejected':
+      return [
+        "Browse other job opportunities",
+        "Consider requesting feedback",
+        "Update your application materials"
+      ]
+    
+    default:
+      return ["Monitor your application status regularly"]
   }
 }

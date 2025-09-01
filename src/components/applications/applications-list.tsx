@@ -7,6 +7,7 @@ import { FileText, Download } from 'lucide-react'
 import { getResumeDownloadUrlClient } from '@/lib/storage/resume-storage'
 import { useToast } from '@/lib/toast-context'
 import { ApplicationTimeline } from './application-timeline'
+import { CoverLetterButton } from './cover-letter-modal'
 import { generateTimeline } from '@/lib/timeline/timeline-generator'
 import type { JobApplicationWithJob } from '@/types/database'
 import type { ApplicationStatus, TimelineConfig } from '@/types/timeline'
@@ -62,6 +63,11 @@ function ApplicationCard({
       <Badge variant="primary">
         {application.jobs.job_type}
       </Badge>
+      <CoverLetterButton
+        coverLetter={application.cover_letter || ''}
+        jobTitle={application.jobs.title}
+        companyName={application.jobs.company}
+      />
       {application.resume_file_path && (
         <ResumeDownloadLink filePath={application.resume_file_path} />
       )}
@@ -70,6 +76,7 @@ function ApplicationCard({
 
   return (
     <ApplicationTimeline
+      jobId={application.jobs.id}
       jobTitle={application.jobs.title}
       companyName={application.jobs.company}
       location={application.jobs.location}

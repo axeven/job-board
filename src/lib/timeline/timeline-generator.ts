@@ -1,11 +1,12 @@
 import type { ApplicationStatus, TimelineConfig, TimelineStep } from '@/types/timeline'
+import { generateFlowSteps, getFlowDescription, getFlowProgress } from './status-mapping'
 
 export function generateTimeline(
   currentStatus: ApplicationStatus,
   appliedAt: string,
   updatedAt: string
 ): TimelineConfig {
-  const steps = generateTimelineSteps(currentStatus)
+  const steps = generateFlowSteps(currentStatus, appliedAt, updatedAt)
   const nextAction = getNextActionMessage(currentStatus)
   
   return {
@@ -17,112 +18,33 @@ export function generateTimeline(
   }
 }
 
-export function generateTimelineSteps(currentStatus: ApplicationStatus): TimelineStep[] {
-  const baseSteps: Omit<TimelineStep, 'isCompleted' | 'isCurrent' | 'icon'>[] = [
-    {
-      id: 'applied',
-      status: 'pending',
-      label: 'Applied',
-      description: 'Your application has been submitted'
-    },
-    {
-      id: 'reviewing',
-      status: 'reviewing', 
-      label: 'Under Review',
-      description: 'Application is being reviewed'
-    },
-    {
-      id: 'shortlisted',
-      status: 'shortlisted',
-      label: 'Shortlisted',
-      description: 'Selected for next round'
-    },
-    {
-      id: 'final',
-      status: currentStatus === 'accepted' ? 'accepted' : 
-               currentStatus === 'rejected' ? 'rejected' : 'pending',
-      label: 'Final Decision',
-      description: 'Application outcome decided'
-    }
-  ]
-
-  // Handle different status flows
-  if (currentStatus === 'rejected') {
-    // For rejections, show where rejection occurred
-    return baseSteps.map((step, index) => {
-      const stepStatus = getStepStatusFromIndex(index, currentStatus)
-      return {
-        ...step,
-        ...stepStatus,
-        // Override final step for rejection
-        ...(step.id === 'final' && {
-          status: 'rejected' as ApplicationStatus,
-          label: 'Rejected',
-          description: 'Application was not successful'
-        })
-      }
-    })
-  }
-
-  if (currentStatus === 'accepted') {
-    // For acceptance, mark final step as accepted
-    return baseSteps.map((step, index) => {
-      const stepStatus = getStepStatusFromIndex(index, currentStatus)
-      return {
-        ...step,
-        ...stepStatus,
-        // Override final step for acceptance
-        ...(step.id === 'final' && {
-          status: 'accepted' as ApplicationStatus,
-          label: 'Accepted',
-          description: 'Congratulations! Application accepted'
-        })
-      }
-    })
-  }
-
-  // Standard flow for pending, reviewing, shortlisted
-  return baseSteps.map((step, index) => {
-    const stepStatus = getStepStatusFromIndex(index, currentStatus)
+// Enhanced timeline generation with flow information
+export function generateEnhancedTimeline(
+  currentStatus: ApplicationStatus,
+  appliedAt: string,
+  updatedAt: string,
+  includeMetadata: boolean = false
+): TimelineConfig & {
+  flowDescription?: string
+  progress?: { percentage: number; completedSteps: number; totalSteps: number }
+} {
+  const timeline = generateTimeline(currentStatus, appliedAt, updatedAt)
+  
+  if (includeMetadata) {
     return {
-      ...step,
-      ...stepStatus
+      ...timeline,
+      flowDescription: getFlowDescription(currentStatus),
+      progress: getFlowProgress(currentStatus)
     }
-  })
+  }
+  
+  return timeline
 }
 
-function getStepStatusFromIndex(
-  stepIndex: number, 
-  currentStatus: ApplicationStatus
-): Pick<TimelineStep, 'isCompleted' | 'isCurrent' | 'icon'> {
-  const statusOrder: ApplicationStatus[] = ['pending', 'reviewing', 'shortlisted', 'accepted']
-  const currentIndex = statusOrder.indexOf(currentStatus)
-  
-  // Handle rejection - can happen at any stage
-  if (currentStatus === 'rejected') {
-    if (stepIndex === 0) {
-      return { isCompleted: true, isCurrent: false, icon: 'check' }
-    } else if (stepIndex === 3) { // Final step
-      return { isCompleted: true, isCurrent: false, icon: 'rejected' }
-    } else {
-      // Middle steps - show as completed up to where rejection likely occurred
-      const isCompleted = stepIndex <= 1 // Assume rejection happened during or after review
-      return { 
-        isCompleted, 
-        isCurrent: false, 
-        icon: isCompleted ? 'check' : 'pending' 
-      }
-    }
-  }
-  
-  // Normal progression
-  if (stepIndex < currentIndex) {
-    return { isCompleted: true, isCurrent: false, icon: 'check' }
-  } else if (stepIndex === currentIndex) {
-    return { isCompleted: false, isCurrent: true, icon: 'current' }
-  } else {
-    return { isCompleted: false, isCurrent: false, icon: 'pending' }
-  }
+// Legacy function - kept for backward compatibility but now uses new flow system
+export function generateTimelineSteps(currentStatus: ApplicationStatus): TimelineStep[] {
+  // Use the new flow-based system
+  return generateFlowSteps(currentStatus, new Date().toISOString(), new Date().toISOString())
 }
 
 export function getNextActionMessage(status: ApplicationStatus): string {
