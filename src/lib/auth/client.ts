@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { userProfilesClient } from '@/lib/database/user-profiles'
 
 // Client-side auth utilities
 export const authClient = {
@@ -15,17 +16,35 @@ export const authClient = {
     return data
   },
 
-  async signUp(email: string, password: string) {
+  async signUp(email: string, password: string, userType: 'employer' | 'job_seeker' = 'job_seeker') {
     const { data, error } = await supabase().auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          user_type: userType
+        }
       }
     })
     
     if (error) {
       throw new AuthError(error.message)
+    }
+
+    // Create user profile if user was created successfully
+    if (data.user && data.user.id && data.user.email) {
+      try {
+        await userProfilesClient.create({
+          id: data.user.id,
+          email: data.user.email,
+          full_name: null
+        })
+      } catch (profileError) {
+        console.error('Failed to create user profile:', profileError)
+        // Don't throw here as the user account was created successfully
+        // The profile can be created later if needed
+      }
     }
     
     return data

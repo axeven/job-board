@@ -32,7 +32,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
       setLoading(true)
       setError(null)
 
-      await authClient.signUp(data.email, data.password)
+      await authClient.signUp(data.email, data.password, data.userType)
       
       setSuccess(true)
       onSuccess?.()
@@ -110,6 +110,35 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}
         />
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            I am a <span className="text-red-500">*</span>
+          </label>
+          <div className="flex space-x-4">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="job_seeker"
+                {...register('userType')}
+                className="mr-2"
+              />
+              <span className="text-sm text-gray-700">Job Seeker</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="employer"
+                {...register('userType')}
+                className="mr-2"
+              />
+              <span className="text-sm text-gray-700">Employer</span>
+            </label>
+          </div>
+          {errors.userType && (
+            <p className="text-sm text-red-600">{errors.userType.message}</p>
+          )}
+        </div>
 
         <Button
           type="submit"

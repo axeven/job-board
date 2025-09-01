@@ -25,7 +25,11 @@ export const signupSchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       'Password must contain at least one uppercase letter, one lowercase letter, and one number'
     ),
-  confirmPassword: z.string()
+  confirmPassword: z.string(),
+  userType: z.enum(['employer', 'job_seeker'], {
+    required_error: 'Please select whether you are an employer or job seeker',
+    invalid_type_error: 'Please select whether you are an employer or job seeker'
+  })
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword']

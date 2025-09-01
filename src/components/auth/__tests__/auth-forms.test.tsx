@@ -103,6 +103,9 @@ describe('Auth Form Components', () => {
       expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()
       expect(screen.getByLabelText('Password')).toBeInTheDocument()
       expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument()
+      expect(screen.getByText(/i am a/i)).toBeInTheDocument()
+      expect(screen.getByDisplayValue('job_seeker')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('employer')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /sign in to your existing account/i })).toBeInTheDocument()
     })
@@ -121,17 +124,43 @@ describe('Auth Form Components', () => {
       
       render(<SignupForm />)
       
+      const emailInput = screen.getByLabelText(/email address/i)
       const passwordInput = screen.getByLabelText('Password')
       const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+      const userTypeRadio = screen.getByDisplayValue('job_seeker')
       
+      await user.type(emailInput, 'test@example.com')
       await user.type(passwordInput, 'Password123')
       await user.type(confirmPasswordInput, 'Different123')
+      await user.click(userTypeRadio)
       
       const submitButton = screen.getByRole('button', { name: /create account/i })
       await user.click(submitButton)
       
       await waitFor(() => {
         expect(screen.getByText(/passwords don't match/i)).toBeInTheDocument()
+      })
+    })
+
+    it('should validate user type selection', async () => {
+      const { SignupForm } = await import('../signup-form')
+      const user = userEvent.setup()
+      
+      render(<SignupForm />)
+      
+      const emailInput = screen.getByLabelText(/email address/i)
+      const passwordInput = screen.getByLabelText('Password')
+      const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+      
+      await user.type(emailInput, 'test@example.com')
+      await user.type(passwordInput, 'Password123')
+      await user.type(confirmPasswordInput, 'Password123')
+      
+      const submitButton = screen.getByRole('button', { name: /create account/i })
+      await user.click(submitButton)
+      
+      await waitFor(() => {
+        expect(screen.getByText(/please select whether you are an employer or job seeker/i)).toBeInTheDocument()
       })
     })
   })
