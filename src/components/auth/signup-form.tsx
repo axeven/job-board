@@ -30,7 +30,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      userType: (searchParams.get('userType') as 'employer' | 'job_seeker') || 'job_seeker'
+      userType: searchParams.get('userType') as 'employer' | 'job_seeker' | undefined
     }
   })
 
