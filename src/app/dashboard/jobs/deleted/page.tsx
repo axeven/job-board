@@ -6,10 +6,8 @@ import type { Tables } from '@/types/supabase'
 export const dynamic = 'force-dynamic'
 
 export default async function DeletedJobsPage() {
-  const user = await authServer.requireAuth({
-    redirectTo: '/auth/login',
-    redirectWithReturn: true
-  })
+  // Require employer authentication
+  const { user } = await authServer.requireEmployer()
   
   // Fetch user's deleted jobs
   let deletedJobs: (Tables<'jobs'> & { deleted_at: string })[] = []

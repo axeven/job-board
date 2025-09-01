@@ -12,11 +12,8 @@ export const dynamic = 'force-dynamic'
 export default async function JobEditPage({ params }: PageProps) {
   const { id: jobId } = await params
   
-  // Require authentication
-  const user = await authServer.requireAuth({
-    redirectTo: '/auth/login',
-    redirectWithReturn: true
-  })
+  // Require employer authentication
+  const { user } = await authServer.requireEmployer()
   
   // Fetch the job and validate ownership
   const { data: job, error } = await jobsServer.getById(jobId)

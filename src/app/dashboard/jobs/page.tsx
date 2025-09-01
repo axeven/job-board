@@ -22,10 +22,8 @@ export default async function MyJobsPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const user = await authServer.requireAuth({
-    redirectTo: '/auth/login',
-    redirectWithReturn: true
-  })
+  // Require employer authentication
+  const { user } = await authServer.requireEmployer()
   
   // Await searchParams in Next.js 15
   const params = await searchParams

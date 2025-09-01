@@ -106,8 +106,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(null)
         }
       } else {
-        console.log('❌ No user_type in metadata, cannot create profile')
-        setProfile(null)
+        console.log('❌ No user_type in metadata, treating as legacy employer')
+        // For legacy users, assume they are employers and create profile
+        try {
+          console.log('🔨 Creating legacy employer profile...')
+          const profileData = {
+            user_id: currentUser.id,
+            user_type: 'employer' as const,
+            full_name: currentUser.user_metadata?.full_name || null,
+            profile_data: {},
+            resume_file_path: null
+          }
+          
+          const { data: newProfile, error: createError } = await userProfilesClient.create(profileData)
+          
+          if (!createError && newProfile) {
+            console.log('✅ Legacy employer profile created successfully')
+            setProfile(newProfile)
+            
+            // Update user metadata to include user_type for future requests
+            supabase().auth.updateUser({
+              data: { user_type: 'employer' }
+            }).catch(err => console.warn('Failed to update user metadata:', err))
+            
+          } else if (createError?.code === '23505') {
+            // Profile already exists, try to fetch it
+            console.log('🔄 Profile already exists, fetching existing profile...')
+            const { data: existingProfile } = await userProfilesClient.getByUserId(currentUser.id)
+            if (existingProfile) {
+              console.log('✅ Existing profile found and loaded')
+              setProfile(existingProfile)
+            }
+          } else {
+            console.error('❌ Failed to create legacy profile:', createError)
+            setProfile(null)
+          }
+        } catch (error) {
+          console.error('❌ Exception creating legacy profile:', error)
+          setProfile(null)
+        }
       }
     } catch (error) {
       console.error('❌ Error in fetchUserProfile:', {
@@ -222,10 +259,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   // Convenience properties - fallback to user metadata if profile doesn't exist
-  const isJobSeeker = profile?.user_type === 'job_seeker' || 
-                      (!profile && user?.user_metadata?.user_type === 'job_seeker')
-  const isEmployer = profile?.user_type === 'employer' || 
-                     (!profile && user?.user_metadata?.user_type === 'employer')
+  // Legacy users without metadata are assumed to be employers
+  const isJobSeeker = !!(profile?.user_type === 'job_seeker' || 
+                      (!profile && user?.user_metadata?.user_type === 'job_seeker'))
+  const isEmployer = !!(profile?.user_type === 'employer' || 
+                     (!profile && user?.user_metadata?.user_type === 'employer') ||
+                     (!profile && user && !user.user_metadata?.user_type)) // Legacy users
 
   return (
     <AuthContext.Provider value={{
