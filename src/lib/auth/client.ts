@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase/client'
-import { userProfilesClient } from '@/lib/database/user-profiles'
 
 // Client-side auth utilities
 export const authClient = {
@@ -32,22 +31,8 @@ export const authClient = {
       throw new AuthError(error.message)
     }
 
-    // Create user profile if user was created successfully
-    if (data.user && data.user.id) {
-      try {
-        await userProfilesClient.create({
-          user_id: data.user.id,
-          user_type: userType,
-          full_name: null,
-          profile_data: {},
-          resume_file_path: null
-        })
-      } catch (profileError) {
-        console.error('Failed to create user profile:', profileError)
-        // Don't throw here as the user account was created successfully
-        // The profile can be created later if needed
-      }
-    }
+    // Profile creation is handled by AuthProvider in auth context
+    // to avoid race conditions and duplicate key errors
     
     return data
   },

@@ -77,6 +77,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!createError && newProfile) {
             console.log('✅ Profile created successfully')
             setProfile(newProfile)
+          } else if (createError?.code === '23505') {
+            // Profile already exists (duplicate key), try to fetch it again
+            console.log('🔄 Profile already exists, fetching existing profile...')
+            try {
+              const { data: existingProfile, error: fetchError } = await userProfilesClient.getByUserId(currentUser.id)
+              if (!fetchError && existingProfile) {
+                console.log('✅ Existing profile found and loaded')
+                setProfile(existingProfile)
+              } else {
+                console.error('❌ Could not fetch existing profile:', fetchError)
+                setProfile(null)
+              }
+            } catch (fetchError) {
+              console.error('❌ Exception fetching existing profile:', fetchError)
+              setProfile(null)
+            }
           } else {
             console.error('❌ Profile creation failed:', createError)
             setProfile(null)
