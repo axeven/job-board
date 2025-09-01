@@ -12,13 +12,10 @@ interface ApplyButtonProps {
 }
 
 export function ApplyButton({ jobId, className }: ApplyButtonProps) {
-  const { user } = useAuth()
+  const { user, isJobSeeker, isEmployer } = useAuth()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [hasApplied, setHasApplied] = useState(false)
-
-  // Check if user has already applied (implement useEffect)
-  // For Phase 1, we'll keep it simple
 
   const handleApply = async () => {
     if (!user) {
@@ -26,13 +23,22 @@ export function ApplyButton({ jobId, className }: ApplyButtonProps) {
       return
     }
 
+    if (isEmployer) {
+      toast.error('Access Denied', 'Employers cannot apply for jobs. Please create a job seeker account if you wish to apply for positions.')
+      return
+    }
+
+    if (!isJobSeeker) {
+      toast.error('Profile Required', 'Please complete your profile setup to apply for jobs.')
+      return
+    }
+
     setIsLoading(true)
     try {
-      // Simple application without cover letter for Phase 1
       const { error } = await applicationsClient.create({
         job_id: jobId,
         applicant_id: user.id,
-        cover_letter: '', // Empty for Phase 1
+        cover_letter: '', // Empty cover letter for quick apply
         status: 'pending'
       })
 
@@ -50,8 +56,16 @@ export function ApplyButton({ jobId, className }: ApplyButtonProps) {
 
   if (hasApplied) {
     return (
-      <Button disabled className={className}>
+      <Button disabled variant="outline" className={className}>
         Applied
+      </Button>
+    )
+  }
+
+  if (isEmployer) {
+    return (
+      <Button disabled variant="outline" className={className}>
+        Employers Cannot Apply
       </Button>
     )
   }

@@ -33,12 +33,14 @@ export const authClient = {
     }
 
     // Create user profile if user was created successfully
-    if (data.user && data.user.id && data.user.email) {
+    if (data.user && data.user.id) {
       try {
         await userProfilesClient.create({
-          id: data.user.id,
-          email: data.user.email,
-          full_name: null
+          user_id: data.user.id,
+          user_type: userType,
+          full_name: null,
+          profile_data: {},
+          resume_file_path: null
         })
       } catch (profileError) {
         console.error('Failed to create user profile:', profileError)

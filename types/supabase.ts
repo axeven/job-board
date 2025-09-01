@@ -101,50 +101,43 @@ export type Database = {
       user_profiles: {
         Row: {
           id: string
-          email: string
+          user_id: string
+          user_type: Database["public"]["Enums"]["user_type_enum"]
           full_name: string | null
-          phone: string | null
-          location: string | null
-          bio: string | null
-          linkedin_url: string | null
-          github_url: string | null
-          portfolio_url: string | null
-          skills: string[] | null
-          experience_level: Database["public"]["Enums"]["experience_level_enum"] | null
+          profile_data: Json
+          resume_file_path: string | null
           created_at: string | null
           updated_at: string | null
         }
         Insert: {
-          id: string
-          email: string
+          id?: string
+          user_id: string
+          user_type?: Database["public"]["Enums"]["user_type_enum"]
           full_name?: string | null
-          phone?: string | null
-          location?: string | null
-          bio?: string | null
-          linkedin_url?: string | null
-          github_url?: string | null
-          portfolio_url?: string | null
-          skills?: string[] | null
-          experience_level?: Database["public"]["Enums"]["experience_level_enum"] | null
+          profile_data?: Json
+          resume_file_path?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
         Update: {
           id?: string
-          email?: string
+          user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type_enum"]
           full_name?: string | null
-          phone?: string | null
-          location?: string | null
-          bio?: string | null
-          linkedin_url?: string | null
-          github_url?: string | null
-          portfolio_url?: string | null
-          skills?: string[] | null
-          experience_level?: Database["public"]["Enums"]["experience_level_enum"] | null
+          profile_data?: Json
+          resume_file_path?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
@@ -157,6 +150,7 @@ export type Database = {
       job_type_enum: "Full-Time" | "Part-Time" | "Contract"
       application_status_enum: "pending" | "reviewing" | "shortlisted" | "rejected" | "accepted"
       experience_level_enum: "Entry-Level" | "Mid-Level" | "Senior-Level" | "Executive"
+      user_type_enum: "employer" | "job_seeker"
     }
     CompositeTypes: {
       [_ in never]: never

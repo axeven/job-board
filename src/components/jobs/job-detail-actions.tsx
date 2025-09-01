@@ -1,37 +1,106 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Job } from '@/types/database'
+import { useAuth } from '@/lib/auth/context'
+import { applicationsClient } from '@/lib/database/applications'
+import { JobApplicationModal } from './job-application-modal'
+import { Button } from '@/components/ui/button'
 
 interface JobDetailActionsProps {
   job: Job
 }
 
 function ApplyButton({ job }: { job: Job }) {
-  const handleApply = () => {
-    // Create a professional email template
-    const subject = encodeURIComponent(`Application for ${job.title} position at ${job.company}`)
-    const body = encodeURIComponent(`Hello,
+  const { user, isEmployer, loading } = useAuth()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [hasApplied, setHasApplied] = useState(false)
+  const [checkingApplication, setCheckingApplication] = useState(false)
 
-I am interested in the ${job.title} position at ${job.company} that I found on your job board.
+  // Check if user has already applied
+  useEffect(() => {
+    const checkExistingApplication = async () => {
+      if (!user) return
+      
+      setCheckingApplication(true)
+      try {
+        const { data: applications } = await applicationsClient.getByUser(user.id, {
+          job_id: job.id
+        })
+        
+        if (applications && applications.length > 0) {
+          setHasApplied(true)
+        }
+      } catch (error) {
+        console.error('Error checking application status:', error)
+      } finally {
+        setCheckingApplication(false)
+      }
+    }
 
-I would like to learn more about this opportunity and submit my application.
+    checkExistingApplication()
+  }, [user, job.id])
 
-Best regards`)
-    
-    // Open default email client
-    window.location.href = `mailto:?subject=${subject}&body=${body}`
+  const handleApplySuccess = () => {
+    setHasApplied(true)
+  }
+
+  const getButtonText = () => {
+    if (!user) return 'Sign In to Apply'
+    if (loading || checkingApplication) return 'Loading...'
+    if (hasApplied) return 'Already Applied'
+    if (isEmployer) return 'Employers Cannot Apply'
+    return 'Apply Now'
+  }
+
+  const getButtonVariant = () => {
+    if (hasApplied || isEmployer) return 'outline' as const
+    return 'primary' as const
+  }
+
+  const isDisabled = loading || checkingApplication || hasApplied || isEmployer
+
+  const handleClick = () => {
+    if (!user) {
+      // Redirect to login
+      window.location.href = '/auth/login?redirectedFrom=' + encodeURIComponent(window.location.pathname)
+      return
+    }
+
+    if (isEmployer) {
+      // Show message that employers cannot apply
+      alert('Employers cannot apply for jobs. Please create a job seeker account if you wish to apply for positions.')
+      return
+    }
+
+    if (hasApplied) {
+      return // Do nothing if already applied
+    }
+
+    setIsModalOpen(true)
   }
 
   return (
-    <button
-      onClick={handleApply}
-      className="flex-1 sm:flex-none inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-    >
-      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-      Apply Now
-    </button>
+    <>
+      <Button
+        onClick={handleClick}
+        disabled={isDisabled}
+        variant={getButtonVariant()}
+        className="flex-1 sm:flex-none"
+      >
+        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+        {getButtonText()}
+      </Button>
+
+      <JobApplicationModal
+        job={job}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleApplySuccess}
+      />
+    </>
   )
 }
 

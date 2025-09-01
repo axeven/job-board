@@ -10,6 +10,7 @@ export type JobType = Database['public']['Enums']['job_type_enum']
 export type UserProfile = Database['public']['Tables']['user_profiles']['Row']
 export type UserProfileInsert = Database['public']['Tables']['user_profiles']['Insert']
 export type UserProfileUpdate = Database['public']['Tables']['user_profiles']['Update']
+export type UserType = Database['public']['Enums']['user_type_enum']
 export type ExperienceLevel = Database['public']['Enums']['experience_level_enum']
 
 // Job application types
