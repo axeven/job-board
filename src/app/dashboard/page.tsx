@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { authServer } from '@/lib/auth/server'
 import { dashboardServer } from '@/lib/database/dashboard'
 import { jobsServer } from '@/lib/database/jobs'
@@ -28,10 +29,18 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     return <AccessDenied error={error} />
   }
   
-  // Fetch real user data and stats
-  const [userStats, userProfile, recentJobsResult] = await Promise.all([
+  // Get user profile with user type from auth server
+  const { profile } = await authServer.getUserProfile()
+  
+  // TEMPORARY: Redirect job seekers to applications page
+  const userType = profile?.user_type || user.user_metadata?.user_type
+  if (userType === 'job_seeker') {
+    redirect('/dashboard/applications')
+  }
+  
+  // Fetch remaining data for employers
+  const [userStats, recentJobsResult] = await Promise.all([
     dashboardServer.getUserJobStats(user.id),
-    dashboardServer.getUserProfile(),
     jobsServer.getByUser(user.id)
   ])
   
@@ -40,7 +49,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   return (
     <div className="space-y-6">
       <WelcomeSection 
-        userName={userProfile?.full_name || userProfile?.email || 'there'}
+        userName={profile?.full_name || user.user_metadata?.full_name || user.email || 'there'}
         hasJobs={recentJobs.length > 0}
       />
 
