@@ -29,5 +29,6 @@ export { ToastContainer } from './toast-container'
 
 // Existing components
 export { FormField } from './form-field'
+export { PasswordInput } from './password-input'
 export { RichTextEditor } from './rich-text-editor'
 export { DeleteConfirmationDialog } from './delete-confirmation-dialog'

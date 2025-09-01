@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 
 import { supabase } from '@/lib/supabase/client'
 import { newPasswordSchema, NewPasswordFormData } from '@/lib/auth/validation'
-import { FormField } from '@/components/ui/form-field'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Button } from '@/components/ui/button'
 
 interface ResetPasswordFormProps {
@@ -85,18 +85,16 @@ export function ResetPasswordForm({}: ResetPasswordFormProps) {
           </div>
         )}
 
-        <FormField
+        <PasswordInput
           label="New password"
-          type="password"
           autoComplete="new-password"
           error={errors.password?.message}
           helperText="Must contain at least 6 characters with uppercase, lowercase, and number"
           {...register('password')}
         />
 
-        <FormField
+        <PasswordInput
           label="Confirm new password"
-          type="password"
           autoComplete="new-password"
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}

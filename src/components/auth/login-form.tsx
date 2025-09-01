@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth/context'
 import { authClient } from '@/lib/auth/client'
 import { loginSchema, LoginFormData } from '@/lib/auth/validation'
 import { FormField } from '@/components/ui/form-field'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Button } from '@/components/ui/button'
 
 interface LoginFormProps {
@@ -84,9 +85,8 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
           {...register('email')}
         />
 
-        <FormField
+        <PasswordInput
           label="Password"
-          type="password"
           autoComplete="current-password"
           error={errors.password?.message}
           {...register('password')}

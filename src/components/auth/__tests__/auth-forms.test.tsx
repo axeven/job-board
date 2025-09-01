@@ -55,7 +55,7 @@ describe('Auth Form Components', () => {
       
       expect(screen.getByRole('heading', { name: /sign in to your account/i })).toBeInTheDocument()
       expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/^password/i)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /create a new account/i })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /forgot your password/i })).toBeInTheDocument()
@@ -83,7 +83,7 @@ describe('Auth Form Components', () => {
       render(<LoginForm />)
       
       const emailInput = screen.getByLabelText(/email address/i)
-      const passwordInput = screen.getByLabelText(/password/i)
+      const passwordInput = screen.getByLabelText(/^password/i)
       
       await user.type(emailInput, 'test@example.com')
       await user.type(passwordInput, 'password123')
@@ -101,7 +101,7 @@ describe('Auth Form Components', () => {
       
       expect(screen.getByRole('heading', { name: /create your account/i })).toBeInTheDocument()
       expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()
-      expect(screen.getByLabelText('Password')).toBeInTheDocument()
+      expect(screen.getByLabelText(/^password/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument()
       expect(screen.getByText(/i am a/i)).toBeInTheDocument()
       expect(screen.getByDisplayValue('job_seeker')).toBeInTheDocument()
@@ -125,7 +125,7 @@ describe('Auth Form Components', () => {
       render(<SignupForm />)
       
       const emailInput = screen.getByLabelText(/email address/i)
-      const passwordInput = screen.getByLabelText('Password')
+      const passwordInput = screen.getByLabelText(/^password/i)
       const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
       const userTypeRadio = screen.getByDisplayValue('job_seeker')
       
@@ -149,7 +149,7 @@ describe('Auth Form Components', () => {
       render(<SignupForm />)
       
       const emailInput = screen.getByLabelText(/email address/i)
-      const passwordInput = screen.getByLabelText('Password')
+      const passwordInput = screen.getByLabelText(/^password/i)
       const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
       
       await user.type(emailInput, 'test@example.com')
@@ -162,6 +162,27 @@ describe('Auth Form Components', () => {
       await waitFor(() => {
         expect(screen.getByText(/please select whether you are an employer or job seeker/i)).toBeInTheDocument()
       })
+    })
+
+    it('should toggle password visibility when clicking the eye button', async () => {
+      const { SignupForm } = await import('../signup-form')
+      const user = userEvent.setup()
+      
+      render(<SignupForm />)
+      
+      const passwordInput = screen.getByLabelText(/^password/i)
+      const toggleButton = screen.getAllByLabelText(/show password/i)[0] // Get first password field's toggle
+      
+      // Initially password should be hidden
+      expect(passwordInput).toHaveAttribute('type', 'password')
+      
+      // Click toggle button to show password
+      await user.click(toggleButton)
+      expect(passwordInput).toHaveAttribute('type', 'text')
+      
+      // Click again to hide password
+      await user.click(screen.getByLabelText(/hide password/i))
+      expect(passwordInput).toHaveAttribute('type', 'password')
     })
   })
 

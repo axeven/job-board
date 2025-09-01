@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { authClient } from '@/lib/auth/client'
 import { signupSchema, SignupFormData } from '@/lib/auth/validation'
 import { FormField } from '@/components/ui/form-field'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Button } from '@/components/ui/button'
 
 interface SignupFormProps {
@@ -94,18 +95,16 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           {...register('email')}
         />
 
-        <FormField
+        <PasswordInput
           label="Password"
-          type="password"
           autoComplete="new-password"
           error={errors.password?.message}
           helperText="Must contain at least 6 characters with uppercase, lowercase, and number"
           {...register('password')}
         />
 
-        <FormField
+        <PasswordInput
           label="Confirm password"
-          type="password"
           autoComplete="new-password"
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}
